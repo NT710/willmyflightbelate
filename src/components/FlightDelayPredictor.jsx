@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, ArrowRight, Cloud, Sun, Wind, TrendingUp, TrendingDown, Check, AlertCircle, Plane } from 'lucide-react';
 import { useFlightService } from '../services/flightService';
-import TermsModal from './components/TermsModal';
+import TermsModal from './TermsModal';
 
 const FlightDelayPredictor = () => {
   const [flightNumber, setFlightNumber] = useState('');
