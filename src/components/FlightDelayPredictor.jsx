@@ -126,3 +126,10 @@ const FlightDelayPredictor = () => {
 };
 
 export default FlightDelayPredictor;
+import TermsModal from './components/TermsModal';
+
+// Inside your main container, after all other content:
+<div className="w-full max-w-md">
+  {/* Existing content */}
+  <TermsModal />
+</div>
