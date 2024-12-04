@@ -1,128 +1,127 @@
 // src/services/flightService.js
 import { useState } from 'react';
 
-// Add your OpenSky credentials
-const OPENSKY_CREDENTIALS = {
-  username: 'YOUR_USERNAME',
-  password: 'YOUR_PASSWORD'
+// Rate limiting configuration
+const RATE_LIMIT = {
+  maxRequests: 900, // Keep buffer below 1000 daily limit
+  timeWindow: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  requests: [],
+  weatherCache: new Map() // Cache for weather data
 };
 
 export const useFlightService = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Get flight data from OpenSky
-  const getFlightData = async (flightNumber) => {
-    const now = Math.floor(Date.now() / 1000);
-    const past = now - 7200; // 2 hours ago
+  // Check if we're within rate limits
+  const checkRateLimit = () => {
+    const now = Date.now();
+    // Remove old requests outside time window
+    RATE_LIMIT.requests = RATE_LIMIT.requests.filter(
+      time => now - time < RATE_LIMIT.timeWindow
+    );
+    
+    if (RATE_LIMIT.requests.length >= RATE_LIMIT.maxRequests) {
+      throw new Error('Daily API limit reached. Please try again tomorrow.');
+    }
+    
+    RATE_LIMIT.requests.push(now);
+    return true;
+  };
 
+  // Get flight data with rate limiting
+  const getFlightData = async (flightNumber) => {
     try {
-      // Create base64 encoded credentials
-      const auth = btoa(`${OPENSKY_CREDENTIALS.username}:${OPENSKY_CREDENTIALS.password}`);
+      checkRateLimit();
       
+      const credentials = btoa(
+        `${process.env.REACT_APP_OPENSKY_USERNAME}:${process.env.REACT_APP_OPENSKY_PASSWORD}`
+      );
+      const now = Math.floor(Date.now() / 1000);
+
       const response = await fetch(
-        `https://opensky-network.org/api/flights/all?begin=${past}&end=${now}`,
+        `https://opensky-network.org/api/flights/all?begin=${now - 7200}&end=${now}`,
         {
           headers: {
-            'Authorization': `Basic ${auth}`
+            'Authorization': `Basic ${credentials}`
           }
         }
       );
+
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch flight data');
       }
 
       const data = await response.json();
-      
-      // Find matching flight
-      const flight = data.find(f => 
+      return data.find(f => 
         f.callsign?.replace(/\s+/g, '').includes(flightNumber.replace(/\s+/g, ''))
       );
 
-      if (!flight) {
-        throw new Error('Flight not found');
-      }
-
-      return flight;
     } catch (error) {
       console.error('Error fetching flight data:', error);
       throw error;
     }
   };
 
-  // Get weather data from weather.gov
+  // Get weather data with caching
   const getWeatherData = async (airport) => {
+    // Check cache first
+    const cached = RATE_LIMIT.weatherCache.get(airport);
+    if (cached && Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30 minute cache
+      return cached.data;
+    }
+
     try {
-      // First, get airport coordinates
       const airportData = await getAirportCoordinates(airport);
-      
-      // Then get weather for those coordinates
       const response = await fetch(
-        `https://api.weather.gov/points/${airportData.latitude},${airportData.longitude}`
+        `https://api.weather.gov/points/${airportData.latitude},${airportData.longitude}/forecast`
       );
-
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch weather point');
+        throw new Error('Failed to fetch weather data');
       }
 
-      const pointData = await response.json();
-      
-      // Get forecast for the location
-      const forecastResponse = await fetch(pointData.properties.forecast);
-      
-      if (!forecastResponse.ok) {
-        throw new Error('Failed to fetch forecast');
-      }
-
-      const forecastData = await forecastResponse.json();
-      
-      return {
-        conditions: forecastData.properties.periods[0].shortForecast,
-        temperature: forecastData.properties.periods[0].temperature,
-        windSpeed: forecastData.properties.periods[0].windSpeed,
-        windDirection: forecastData.properties.periods[0].windDirection
+      const data = await response.json();
+      const weatherData = {
+        conditions: data.properties.periods[0].shortForecast,
+        temperature: data.properties.periods[0].temperature,
+        windSpeed: data.properties.periods[0].windSpeed
       };
+
+      // Cache the result
+      RATE_LIMIT.weatherCache.set(airport, {
+        data: weatherData,
+        timestamp: Date.now()
+      });
+
+      return weatherData;
     } catch (error) {
-      console.error('Error fetching weather data:', error);
+      console.error('Error fetching weather:', error);
       throw error;
     }
   };
 
-  // Simple airport coordinates lookup (you might want to use a more complete database)
-  const getAirportCoordinates = async (airportCode) => {
-    // This is a simplified example. In production, you'd want a proper airport database
-    const airports = {
-      'JFK': { latitude: 40.6413, longitude: -73.7781 },
-      'LAX': { latitude: 33.9416, longitude: -118.4085 },
-      'ORD': { latitude: 41.9742, longitude: -87.9073 },
-      // Add more airports as needed
-    };
-
-    const airport = airports[airportCode];
-    if (!airport) {
-      throw new Error('Airport not found');
-    }
-
-    return airport;
-  };
-
-  // Main prediction function
+  // Main prediction function with rate limiting
   const getPrediction = async (flightNumber) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Get flight data
       const flightData = await getFlightData(flightNumber);
-      
-      // Get weather for both departure and arrival
+      if (!flightData) {
+        throw new Error('Flight not found. Please check the flight number.');
+      }
+
       const [departureWeather, arrivalWeather] = await Promise.all([
         getWeatherData(flightData.estDepartureAirport),
         getWeatherData(flightData.estArrivalAirport)
       ]);
 
-      // Calculate prediction
+      // Rest of your prediction calculation logic...
       const prediction = calculatePrediction(flightData, {
         departure: departureWeather,
         arrival: arrivalWeather
@@ -143,6 +142,9 @@ export const useFlightService = () => {
             current: departureWeather.conditions,
             destination: arrivalWeather.conditions,
             impact: calculateWeatherImpact(departureWeather, arrivalWeather)
+          },
+          apiCalls: {
+            remaining: RATE_LIMIT.maxRequests - RATE_LIMIT.requests.length
           }
         }
       };
@@ -158,6 +160,7 @@ export const useFlightService = () => {
   return {
     getPrediction,
     loading,
-    error
+    error,
+    getRemainingCalls: () => RATE_LIMIT.maxRequests - RATE_LIMIT.requests.length
   };
 };
