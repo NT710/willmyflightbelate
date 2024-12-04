@@ -1,219 +1,148 @@
 // src/services/flightService.js
 import { useState } from 'react';
 
-// Regional weather patterns by airport region
-const REGIONAL_PATTERNS = {
-  'NA': { // North America
-    'SEA': { rain: 0.6, fog: 0.3 },    // Seattle
-    'MIA': { thunderstorm: 0.4 },      // Miami
-    'ORD': { snow: 0.4, wind: 0.5 },   // Chicago
-    'LAX': { fog: 0.3 },               // Los Angeles
-  },
-  'EU': { // Europe
-    'LHR': { fog: 0.5, rain: 0.4 },    // London
-    'CDG': { rain: 0.3 },              // Paris
-    'FRA': { snow: 0.3 },              // Frankfurt
-  },
-  'AS': { // Asia
-    'HND': { typhoon: 0.2 },           // Tokyo
-    'SIN': { thunderstorm: 0.5 },      // Singapore
-    'BKK': { rain: 0.6 },              // Bangkok
-  }
-};
-
-// Seasonal patterns by hemisphere
-const SEASONAL_PATTERNS = {
-  'NORTH': {
-    'WINTER': { snow: 0.4, ice: 0.3 },
-    'SPRING': { thunderstorm: 0.4, rain: 0.5 },
-    'SUMMER': { thunderstorm: 0.6, heat: 0.4 },
-    'FALL': { rain: 0.4, wind: 0.3 }
-  },
-  'SOUTH': {
-    'WINTER': { rain: 0.5, wind: 0.4 },
-    'SPRING': { rain: 0.3, wind: 0.2 },
-    'SUMMER': { thunderstorm: 0.5, heat: 0.6 },
-    'FALL': { rain: 0.4, fog: 0.3 }
-  }
+// Add your OpenSky credentials
+const OPENSKY_CREDENTIALS = {
+  username: 'YOUR_USERNAME',
+  password: 'YOUR_PASSWORD'
 };
 
 export const useFlightService = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Get current season based on hemisphere
-  const getCurrentSeason = (airport) => {
-    const month = new Date().getMonth();
-    const isNorthern = REGIONAL_PATTERNS['NA'][airport] || 
-                      REGIONAL_PATTERNS['EU'][airport] ||
-                      airport.startsWith('K') || // US airports
-                      airport.startsWith('E');   // European airports
-    
-    if (isNorthern) {
-      if (month >= 2 && month <= 4) return 'SPRING';
-      if (month >= 5 && month <= 7) return 'SUMMER';
-      if (month >= 8 && month <= 10) return 'FALL';
-      return 'WINTER';
-    } else {
-      if (month >= 2 && month <= 4) return 'FALL';
-      if (month >= 5 && month <= 7) return 'WINTER';
-      if (month >= 8 && month <= 10) return 'SPRING';
-      return 'SUMMER';
+  // Get flight data from OpenSky
+  const getFlightData = async (flightNumber) => {
+    const now = Math.floor(Date.now() / 1000);
+    const past = now - 7200; // 2 hours ago
+
+    try {
+      // Create base64 encoded credentials
+      const auth = btoa(`${OPENSKY_CREDENTIALS.username}:${OPENSKY_CREDENTIALS.password}`);
+      
+      const response = await fetch(
+        `https://opensky-network.org/api/flights/all?begin=${past}&end=${now}`,
+        {
+          headers: {
+            'Authorization': `Basic ${auth}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch flight data');
+      }
+
+      const data = await response.json();
+      
+      // Find matching flight
+      const flight = data.find(f => 
+        f.callsign?.replace(/\s+/g, '').includes(flightNumber.replace(/\s+/g, ''))
+      );
+
+      if (!flight) {
+        throw new Error('Flight not found');
+      }
+
+      return flight;
+    } catch (error) {
+      console.error('Error fetching flight data:', error);
+      throw error;
     }
   };
 
-  // Enhanced status messages with more detail
-  const getDetailedStatus = (flightData) => {
-    const baseStatus = {
-      state: '',
-      message: '',
-      icon: '',
-      colorClass: '',
-      severity: 0
-    };
+  // Get weather data from weather.gov
+  const getWeatherData = async (airport) => {
+    try {
+      // First, get airport coordinates
+      const airportData = await getAirportCoordinates(airport);
+      
+      // Then get weather for those coordinates
+      const response = await fetch(
+        `https://api.weather.gov/points/${airportData.latitude},${airportData.longitude}`
+      );
 
-    // Ground operations
-    if (flightData.onGround) {
-      if (!flightData.departed) {
-        if (flightData.delay > 30) {
-          return {
-            ...baseStatus,
-            state: 'Significantly Delayed',
-            message: `Flight is delayed by ${flightData.delay} minutes at gate`,
-            icon: 'clock',
-            colorClass: 'text-red-500',
-            severity: 3
-          };
-        } else if (flightData.delay > 0) {
-          return {
-            ...baseStatus,
-            state: 'Slightly Delayed',
-            message: `Short delay of ${flightData.delay} minutes`,
-            icon: 'clock',
-            colorClass: 'text-yellow-500',
-            severity: 1
-          };
-        } else {
-          return {
-            ...baseStatus,
-            state: 'On Time',
-            message: 'Flight is on schedule',
-            icon: 'check',
-            colorClass: 'text-green-500',
-            severity: 0
-          };
-        }
-      } else {
-        if (flightData.velocity > 0) {
-          return {
-            ...baseStatus,
-            state: 'Taxiing',
-            message: flightData.arrived ? 'Arriving at gate' : 'Departing to runway',
-            icon: 'plane',
-            colorClass: 'text-blue-500',
-            severity: 0
-          };
-        }
+      if (!response.ok) {
+        throw new Error('Failed to fetch weather point');
       }
-    }
-    
-    // In-flight operations
-    if (flightData.altitude > 0) {
-      if (flightData.verticalRate > 500) {
-        return {
-          ...baseStatus,
-          state: 'Climbing',
-          message: 'Ascending to cruise altitude',
-          icon: 'trending-up',
-          colorClass: 'text-blue-500',
-          severity: 0
-        };
-      } else if (flightData.verticalRate < -500) {
-        return {
-          ...baseStatus,
-          state: 'Descending',
-          message: 'Preparing for landing',
-          icon: 'trending-down',
-          colorClass: 'text-blue-500',
-          severity: 0
-        };
-      } else {
-        return {
-          ...baseStatus,
-          state: 'Cruising',
-          message: `At ${Math.round(flightData.altitude/100)*100} feet`,
-          icon: 'plane',
-          colorClass: 'text-green-500',
-          severity: 0
-        };
-      }
-    }
 
-    return {
-      ...baseStatus,
-      state: 'Unknown',
-      message: 'Flight status unavailable',
-      icon: 'help-circle',
-      colorClass: 'text-gray-500',
-      severity: 0
-    };
+      const pointData = await response.json();
+      
+      // Get forecast for the location
+      const forecastResponse = await fetch(pointData.properties.forecast);
+      
+      if (!forecastResponse.ok) {
+        throw new Error('Failed to fetch forecast');
+      }
+
+      const forecastData = await forecastResponse.json();
+      
+      return {
+        conditions: forecastData.properties.periods[0].shortForecast,
+        temperature: forecastData.properties.periods[0].temperature,
+        windSpeed: forecastData.properties.periods[0].windSpeed,
+        windDirection: forecastData.properties.periods[0].windDirection
+      };
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      throw error;
+    }
   };
 
-  // Main prediction function with all enhancements
+  // Simple airport coordinates lookup (you might want to use a more complete database)
+  const getAirportCoordinates = async (airportCode) => {
+    // This is a simplified example. In production, you'd want a proper airport database
+    const airports = {
+      'JFK': { latitude: 40.6413, longitude: -73.7781 },
+      'LAX': { latitude: 33.9416, longitude: -118.4085 },
+      'ORD': { latitude: 41.9742, longitude: -87.9073 },
+      // Add more airports as needed
+    };
+
+    const airport = airports[airportCode];
+    if (!airport) {
+      throw new Error('Airport not found');
+    }
+
+    return airport;
+  };
+
+  // Main prediction function
   const getPrediction = async (flightNumber) => {
     setLoading(true);
     setError(null);
     
     try {
+      // Get flight data
       const flightData = await getFlightData(flightNumber);
-      if (!flightData) {
-        throw new Error('Flight not found. Please check the flight number.');
-      }
+      
+      // Get weather for both departure and arrival
+      const [departureWeather, arrivalWeather] = await Promise.all([
+        getWeatherData(flightData.estDepartureAirport),
+        getWeatherData(flightData.estArrivalAirport)
+      ]);
 
-      const departure = flightData.departure;
-      const arrival = flightData.arrival;
-      
-      // Get regional patterns
-      const departureRegion = getAirportRegion(departure);
-      const arrivalRegion = getAirportRegion(arrival);
-      
-      // Get seasonal impacts
-      const departureSeason = getCurrentSeason(departure);
-      const arrivalSeason = getCurrentSeason(arrival);
-      
-      // Get detailed status
-      const status = getDetailedStatus(flightData);
-
-      // Calculate final prediction
-      const prediction = calculateFinalPrediction({
-        flightData,
-        departureRegion,
-        arrivalRegion,
-        departureSeason,
-        arrivalSeason,
-        status
+      // Calculate prediction
+      const prediction = calculatePrediction(flightData, {
+        departure: departureWeather,
+        arrival: arrivalWeather
       });
 
       return {
-        prediction,
+        prediction: {
+          probability: prediction.probability,
+          delay: prediction.delay
+        },
         details: {
           planeState: {
-            ...status,
-            currentLocation: flightData.currentLocation,
+            currentLocation: flightData.estDepartureAirport,
+            status: getFlightStatus(flightData),
             flightTime: calculateRemainingTime(flightData)
           },
           weather: {
-            departure: await getWeatherData(departure),
-            arrival: await getWeatherData(arrival),
-            seasonal: {
-              departure: SEASONAL_PATTERNS[departureRegion][departureSeason],
-              arrival: SEASONAL_PATTERNS[arrivalRegion][arrivalSeason]
-            }
-          },
-          pattern: {
-            lastWeek: generateWeeklyPattern(flightData),
-            todayRank: calculateDayRank(status.severity),
-            trend: determineTrend(prediction.probability)
+            current: departureWeather.conditions,
+            destination: arrivalWeather.conditions,
+            impact: calculateWeatherImpact(departureWeather, arrivalWeather)
           }
         }
       };
