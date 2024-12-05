@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert.jsx';
 
 const APITest = () => {
   const [testStatus, setTestStatus] = useState({
@@ -47,7 +47,6 @@ const APITest = () => {
 
   const testWeatherAPI = async () => {
     try {
-      // Test with JFK airport coordinates
       const response = await fetch(
         'https://api.weather.gov/points/40.6413,-73.7781'
       );
@@ -71,7 +70,6 @@ const APITest = () => {
   const runTests = async () => {
     setTestStatus(prev => ({ ...prev, loading: true }));
     
-    // Run tests in parallel
     const [openSkyResult, weatherResult] = await Promise.all([
       testOpenSkyAPI(),
       testWeatherAPI()
