@@ -1,5 +1,8 @@
-require('dotenv').config();
-const fetch = require('node-fetch');
+import { createRequire } from 'module';
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+
+dotenv.config();
 
 async function testOpenSkyAPI() {
   try {
