@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog.jsx";
+} from "./ui/dialog";
 
 const TermsModal = () => {
   return (
