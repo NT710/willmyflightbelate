@@ -3,7 +3,7 @@ import FlightDelayPredictor from './components/FlightDelayPredictor';
 
 function App() {
   return (
-    <div>
+    <div className="App">
       <FlightDelayPredictor />
     </div>
   );
