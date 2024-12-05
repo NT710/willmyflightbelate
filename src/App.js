@@ -1,5 +1,5 @@
 import React from 'react';
-import FlightDelayPredictor from './components/FlightDelayPredictor.jsx';
+import FlightDelayPredictor from './components/FlightDelayPredictor';
 
 function App() {
   return (
