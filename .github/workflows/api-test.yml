@@ -17,10 +17,10 @@ jobs:
           node-version: '18'
           
       - name: Install dependencies
-        run: npm install dotenv node-fetch
+        run: npm install
         
       - name: Run API tests
         env:
           OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
           OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
-        run: node apiTest.js
+        run: npm run test:api
