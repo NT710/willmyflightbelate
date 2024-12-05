@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert.jsx';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 const APITest = () => {
   const [testStatus, setTestStatus] = useState({
@@ -12,14 +12,26 @@ const APITest = () => {
   const testOpenSkyAPI = async () => {
     try {
       const now = Math.floor(Date.now() / 1000);
+      const past = now - 3600; // 1 hour ago
+
+      // Log the attempt
+      console.log('Attempting to connect to OpenSky API...');
+      console.log('Credentials:', {
+        username: process.env.REACT_APP_OPENSKY_USERNAME ? 'Set' : 'Not set',
+        password: process.env.REACT_APP_OPENSKY_PASSWORD ? 'Set' : 'Not set'
+      });
+
       const response = await fetch(
-        `https://opensky-network.org/api/flights/all?begin=${now - 3600}&end=${now}`,
+        `https://opensky-network.org/api/flights/all?begin=${past}&end=${now}`,
         {
           headers: {
             'Authorization': `Basic ${btoa(`${process.env.REACT_APP_OPENSKY_USERNAME}:${process.env.REACT_APP_OPENSKY_PASSWORD}`)}`
           }
         }
       );
+
+      console.log('API Response Status:', response.status);
+      console.log('API Response Headers:', Object.fromEntries(response.headers.entries()));
 
       if (response.status === 401) {
         return { status: 'error', message: 'Authentication failed. Check your OpenSky credentials.' };
@@ -36,6 +48,7 @@ const APITest = () => {
       const data = await response.json();
       return { status: 'success', message: `Successfully fetched ${data.length} flights` };
     } catch (error) {
+      console.error('OpenSky API Error:', error);
       return { 
         status: 'error', 
         message: error.message.includes('Failed to fetch') 
@@ -47,6 +60,7 @@ const APITest = () => {
 
   const testWeatherAPI = async () => {
     try {
+      // Test with JFK airport coordinates
       const response = await fetch(
         'https://api.weather.gov/points/40.6413,-73.7781'
       );
@@ -55,9 +69,10 @@ const APITest = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      await response.json();
       return { status: 'success', message: 'Successfully connected to Weather.gov API' };
     } catch (error) {
+      console.error('Weather API Error:', error);
       return { 
         status: 'error', 
         message: error.message.includes('Failed to fetch')
