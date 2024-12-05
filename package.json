@@ -2,6 +2,7 @@
   "name": "willmyflightbelate",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
     "class-variance-authority": "^0.7.0",
@@ -12,13 +13,16 @@
     "lucide-react": "^0.263.1",
     "tailwind-merge": "^2.1.0",
     "tailwindcss": "^3.4.0",
-    "@tailwindcss/forms": "^0.5.7"
+    "@tailwindcss/forms": "^0.5.7",
+    "dotenv": "^16.0.3",
+    "node-fetch": "^3.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:api": "node apiTest.js"
   },
   "browserslist": {
     "production": [
