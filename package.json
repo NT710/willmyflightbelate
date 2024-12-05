@@ -19,10 +19,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "test:api": "node apiTest.js"
+    "test:api": "node apiTest.js",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
