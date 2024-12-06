@@ -44,4 +44,22 @@ const TermsModal = () => {
               </ul>
               
               <p>
-                4. Users should always verify flight
+                4. Users should always verify flight status directly with their airline and arrive at the airport according to the airline's recommended check-in time.
+              </p>
+              
+              <p>
+                5. This service is provided "as is" without warranties of any kind, either express or implied.
+              </p>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-4">
+              Last updated: December 2024
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default TermsModal;
