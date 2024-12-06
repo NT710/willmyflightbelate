@@ -6,9 +6,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "./ui/dialog";
 
-export const TermsModal = () => {
+const TermsModal = () => {
   return (
     <div className="w-full text-center text-sm text-gray-500 mt-8">
       <Dialog>
