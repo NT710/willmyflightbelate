@@ -1,19 +1,16 @@
-// src/services/flightService.js
 import { useState } from 'react';
 
-// Cache configuration
 const CACHE = {
   weather: new Map(),
   flights: new Map(),
   cacheTime: 5 * 60 * 1000 // 5 minutes
 };
 
-// API configuration
 const API_CONFIG = {
-  baseUrl: process.env.REACT_APP_API_BASE_URL || 'https://opensky-network.org/api',
+  baseUrl: 'https://opensky-network.org/api',
   credentials: {
-    username: process.env.REACT_APP_OPENSKY_USERNAME,
-    password: process.env.REACT_APP_OPENSKY_PASSWORD
+    username: window._env_?.OPENSKY_USERNAME,
+    password: window._env_?.OPENSKY_PASSWORD
   }
 };
 
@@ -21,10 +18,16 @@ export const useFlightService = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getAuthHeaders = () => ({
-    'Authorization': `Basic ${btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`)}`,
-    'Content-Type': 'application/json'
-  });
+  const getAuthHeaders = () => {
+    if (!API_CONFIG.credentials.username || !API_CONFIG.credentials.password) {
+      throw new Error('API credentials not configured');
+    }
+    
+    return {
+      'Authorization': `Basic ${btoa(`${API_CONFIG.credentials.username}:${API_CONFIG.credentials.password}`)}`,
+      'Content-Type': 'application/json'
+    };
+  };
 
   const handleApiError = (error, endpoint) => {
     console.error(`API Error (${endpoint}):`, error);
@@ -46,7 +49,6 @@ export const useFlightService = () => {
   };
 
   const getFlightData = async (flightNumber) => {
-    // Check cache first
     const cachedData = CACHE.flights.get(flightNumber);
     if (cachedData && Date.now() - cachedData.timestamp < CACHE.cacheTime) {
       return cachedData.data;
@@ -76,7 +78,6 @@ export const useFlightService = () => {
         throw new Error('Flight not found');
       }
 
-      // Cache the result
       CACHE.flights.set(flightNumber, {
         data: flight,
         timestamp: Date.now()
@@ -113,7 +114,6 @@ export const useFlightService = () => {
 
       const data = await response.json();
       
-      // Cache the result
       CACHE.weather.set(cacheKey, {
         data: data,
         timestamp: Date.now()
@@ -125,6 +125,31 @@ export const useFlightService = () => {
     }
   };
 
+  const calculateProbability = (flightData, departureWeather, arrivalWeather) => {
+    // Implement your probability calculation logic here
+    return 75; // Placeholder
+  };
+
+  const calculateDelay = (flightData, departureWeather, arrivalWeather) => {
+    // Implement your delay calculation logic here
+    return 35; // Placeholder
+  };
+
+  const getFlightStatus = (flightData) => {
+    // Implement flight status logic here
+    return 'On Time'; // Placeholder
+  };
+
+  const calculateRemainingTime = (flightData) => {
+    // Implement remaining time calculation here
+    return '2h 15m'; // Placeholder
+  };
+
+  const calculateWeatherImpact = (departureWeather, arrivalWeather) => {
+    // Implement weather impact calculation here
+    return 'medium'; // Placeholder
+  };
+
   const getPrediction = async (flightNumber) => {
     setLoading(true);
     setError(null);
@@ -132,7 +157,6 @@ export const useFlightService = () => {
     try {
       const flightData = await getFlightData(flightNumber);
       
-      // Add retry logic for critical failures
       const retryOperation = async (operation, maxRetries = 3) => {
         for (let i = 0; i < maxRetries; i++) {
           try {
