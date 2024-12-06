@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plane, ArrowRight, Clock, Sun, Cloud, AlertCircle, RefreshCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useFlightService } from '../services/flightService';
+import { TermsModal } from './TermsModal';
 
 const FlightDelayPredictor = () => {
   const [flightNumber, setFlightNumber] = useState('');
@@ -9,7 +10,6 @@ const FlightDelayPredictor = () => {
   const [showDetails, setShowDetails] = useState(false);
   const { getPrediction, loading, error, clearError } = useFlightService();
 
-  // Clean up error when component unmounts
   useEffect(() => {
     return () => clearError();
   }, [clearError]);
@@ -33,7 +33,7 @@ const FlightDelayPredictor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         {error && (
           <Alert className="mb-6 bg-red-50 border-red-200">
@@ -54,7 +54,7 @@ const FlightDelayPredictor = () => {
         {!prediction ? (
           <div className="text-center">
             <h1 className="text-4xl mb-12 font-light">Will my flight be late?</h1>
-            <form onSubmit={handleSubmit} className="relative">
+            <form onSubmit={handleSubmit} className="relative" role="search" aria-label="Flight search">
               <input
                 type="text"
                 value={flightNumber}
@@ -83,7 +83,6 @@ const FlightDelayPredictor = () => {
           </div>
         ) : (
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            {/* Prediction Display */}
             <div className="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between px-8 overflow-hidden">
               <div 
                 className={`absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 transition-transform duration-1000 
@@ -100,7 +99,49 @@ const FlightDelayPredictor = () => {
               </div>
             </div>
 
-            {/* Reset Button */}
+            <div className={`transition-all duration-500 ${showDetails ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="p-6 border-b">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="font-medium text-gray-600">Current Status</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-sm text-gray-500">{prediction.details.planeState.status}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <div>{prediction.details.planeState.currentLocation}</div>
+                  <div>{prediction.details.planeState.flightTime} remaining</div>
+                </div>
+              </div>
+
+              <div className="p-6 border-b">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-gray-600 mb-2">
+                      <Cloud className="h-5 w-5" />
+                      <span>Weather Impact</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">Current</span>
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4 text-yellow-500" />
+                          <span className="text-sm">{prediction.details.weather.current}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">Destination</span>
+                        <div className="flex items-center gap-2">
+                          <Cloud className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm">{prediction.details.weather.destination}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={handleReset}
               className="w-full p-4 text-gray-500 hover:text-gray-700 transition-colors"
@@ -109,6 +150,8 @@ const FlightDelayPredictor = () => {
             </button>
           </div>
         )}
+
+        <TermsModal />
       </div>
     </div>
   );
