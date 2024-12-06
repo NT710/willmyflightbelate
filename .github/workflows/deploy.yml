@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+      OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
     
     steps:
       - uses: actions/checkout@v2
@@ -21,16 +24,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
         
-      - name: Create env file
-        env:
-          OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
-          OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+      - name: Create env config
         run: |
-          echo "const env = {" > public/env-config.js
-          echo "  OPENSKY_USERNAME: '${{ secrets.OPENSKY_USERNAME }}'," >> public/env-config.js
-          echo "  OPENSKY_PASSWORD: '${{ secrets.OPENSKY_PASSWORD }}'" >> public/env-config.js
-          echo "};" >> public/env-config.js
-          echo "window._env_ = env;" >> public/env-config.js
+          cat > ./public/env-config.js << EOF
+          window._env_ = {
+            OPENSKY_USERNAME: "${{ secrets.OPENSKY_USERNAME }}",
+            OPENSKY_PASSWORD: "${{ secrets.OPENSKY_PASSWORD }}"
+          };
+          EOF
         
       - name: Build
         run: npm run build
@@ -42,3 +43,4 @@ jobs:
         with:
           branch: gh-pages
           folder: build
+          clean: true
