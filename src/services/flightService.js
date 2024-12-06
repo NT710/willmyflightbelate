@@ -1,33 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export const useFlightService = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
-
-  useEffect(() => {
-    // Check if config is loaded
-    const checkConfig = () => {
-      if (window._env_ && window._env_.OPENSKY_USERNAME) {
-        setIsConfigLoaded(true);
-      } else {
-        // If not loaded, retry after a short delay
-        setTimeout(checkConfig, 1000);
-      }
-    };
-    checkConfig();
-  }, []);
 
   const getFlightData = async (flightNumber) => {
-    if (!isConfigLoaded) {
-      throw new Error('Application configuration is still loading. Please wait...');
-    }
-
-    const username = window._env_?.OPENSKY_USERNAME;
-    const password = window._env_?.OPENSKY_PASSWORD;
+    const username = process.env.REACT_APP_OPENSKY_USERNAME;
+    const password = process.env.REACT_APP_OPENSKY_PASSWORD;
 
     if (!username || !password) {
-      throw new Error('OpenSky credentials not configured in GitHub secrets');
+      throw new Error('OpenSky credentials not configured');
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -116,8 +98,7 @@ export const useFlightService = () => {
   return {
     getPrediction,
     loading,
-    error,
-    isConfigLoaded
+    error
   };
 };
 
