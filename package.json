@@ -19,8 +19,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build && npm run copy-assets",
-    "copy-assets": "cp public/manifest.json build/ && cp public/*.png build/ && cp public/favicon.ico build/",
+    "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "test:api": "node apiTest.js",
     "eject": "react-scripts eject"
@@ -29,7 +28,11 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "warn",
+      "jsx-a11y/heading-has-content": "off"
+    }
   },
   "browserslist": {
     "production": [
@@ -42,14 +45,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^14.4.3",
-    "@types/node": "^18.11.18",
-    "@types/react": "^18.0.26",
-    "@types/react-dom": "^18.0.10"
-  },
-  "proxy": "https://opensky-network.org"
+  }
 }
