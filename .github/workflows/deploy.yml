@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Flight Delay Predictor
 
 on:
   push:
@@ -9,26 +9,20 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-          
-      - name: Install Dependencies
-        run: npm install
-        
-      - name: Build
-        env:
-          REACT_APP_OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
-          REACT_APP_OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
-        run: npm run build
-          
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.5
-        with:
-          branch: gh-pages
-          folder: build
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Create env-config.js
+      run: |
+        echo "window._env_ = {
+          OPEN
