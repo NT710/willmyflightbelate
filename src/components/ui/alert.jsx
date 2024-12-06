@@ -1,6 +1,11 @@
 import * as React from "react"
-import { cn } from "../../lib/utils"
+import { twMerge } from "tailwind-merge"
+import { clsx } from "clsx"
  
+const cn = (...inputs) => {
+  return twMerge(clsx(inputs))
+}
+
 const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
   <div
     ref={ref}
@@ -14,14 +19,12 @@ const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
 ))
 Alert.displayName = "Alert"
  
-const AlertTitle = React.forwardRef(({ className, children, ...props }, ref) => (
+const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
   <h5
     ref={ref}
     className={cn("mb-1 font-medium leading-none tracking-tight", className)}
     {...props}
-  >
-    {children}
-  </h5>
+  />
 ))
 AlertTitle.displayName = "AlertTitle"
  
