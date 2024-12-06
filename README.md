@@ -13,7 +13,7 @@ A simple, user-friendly web application that predicts flight delays using free, 
 - Tailwind CSS
 - OpenSky Network API (flight data)
 - National Weather Service API (weather data)
-- Bureau of Transportation Statistics (historical data)
+- https://ourairports.com/data/ (raw data for airport and runway information)
 
 ## Prerequisites
 - Node.js and npm installed
