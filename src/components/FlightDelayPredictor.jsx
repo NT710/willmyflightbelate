@@ -4,15 +4,13 @@ import { useFlightService } from '../services/flightService';
 import TermsModal from './TermsModal';
 
 const FlightDelayPredictor = () => {
-  const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [showDetails, setShowDetails] = useState(false);
-  const { getPrediction, error } = useFlightService();
+  const { getPrediction, loading, error, isConfigLoaded } = useFlightService();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setShowDetails(false);
     
     try {
@@ -21,10 +19,21 @@ const FlightDelayPredictor = () => {
         setPrediction(result);
         setTimeout(() => setShowDetails(true), 500);
       }
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Submit error:', err);
     }
   };
+
+  if (!isConfigLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <Clock className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
+          <p className="text-gray-600">Loading application configuration...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -64,7 +73,6 @@ const FlightDelayPredictor = () => {
           </div>
         ) : (
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            {/* Main Prediction Band */}
             <div className="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between px-8 overflow-hidden">
               <div 
                 className={`absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 transition-transform duration-1000 
@@ -81,9 +89,7 @@ const FlightDelayPredictor = () => {
               </div>
             </div>
 
-            {/* Magic Expanding Details */}
             <div className={`transition-all duration-500 ${showDetails ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              {/* Current Plane Status */}
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between mb-4">
                   <div className="font-medium text-gray-600">Current Status</div>
@@ -104,7 +110,6 @@ const FlightDelayPredictor = () => {
                 </div>
               </div>
 
-              {/* Weather Impact */}
               <div className="p-6 border-b">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2">
@@ -132,7 +137,6 @@ const FlightDelayPredictor = () => {
                 </div>
               </div>
 
-              {/* Reset Button */}
               <button
                 onClick={() => setPrediction(null)}
                 className="w-full p-4 text-gray-500 hover:text-gray-700 transition-colors"
