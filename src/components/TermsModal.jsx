@@ -1,13 +1,14 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
+} from "@/components/ui/dialog";
 
-const TermsModal = () => {
+export const TermsModal = () => {
   return (
     <div className="w-full text-center text-sm text-gray-500 mt-8">
       <Dialog>
@@ -26,11 +27,13 @@ const TermsModal = () => {
             
             <div className="space-y-2">
               <p>
-                1. This service provides estimates and predictions based on publicly available data sources. All predictions are probabilistic in nature and should not be considered guarantees.
+                1. This service provides estimates and predictions based on publicly available data sources. 
+                All predictions are probabilistic in nature and should not be considered guarantees.
               </p>
               
               <p>
-                2. The accuracy of predictions depends on multiple factors including, but not limited to, weather conditions, air traffic, airline operations, and data availability.
+                2. The accuracy of predictions depends on multiple factors including, but not limited to:
+                weather conditions, air traffic, airline operations, and data availability.
               </p>
               
               <p>
@@ -44,7 +47,8 @@ const TermsModal = () => {
               </ul>
               
               <p>
-                4. Users should always verify flight status directly with their airline and arrive at the airport according to the airline's recommended check-in time.
+                4. Users should always verify flight status directly with their airline and arrive at 
+                the airport according to the airline's recommended check-in time.
               </p>
               
               <p>
