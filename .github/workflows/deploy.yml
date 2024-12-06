@@ -22,11 +22,15 @@ jobs:
         run: npm install
         
       - name: Create env file
+        env:
+          OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+          OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
         run: |
-          echo "window._env_ = {" > public/env-config.js
+          echo "const env = {" > public/env-config.js
           echo "  OPENSKY_USERNAME: '${{ secrets.OPENSKY_USERNAME }}'," >> public/env-config.js
           echo "  OPENSKY_PASSWORD: '${{ secrets.OPENSKY_PASSWORD }}'" >> public/env-config.js
           echo "};" >> public/env-config.js
+          echo "window._env_ = env;" >> public/env-config.js
         
       - name: Build
         run: npm run build
