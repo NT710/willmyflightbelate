@@ -9,9 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
-      OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
     
     steps:
       - uses: actions/checkout@v2
@@ -24,23 +21,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
         
-      - name: Create env config
-        run: |
-          cat > ./public/env-config.js << EOF
-          window._env_ = {
-            OPENSKY_USERNAME: "${{ secrets.OPENSKY_USERNAME }}",
-            OPENSKY_PASSWORD: "${{ secrets.OPENSKY_PASSWORD }}"
-          };
-          EOF
-        
       - name: Build
-        run: npm run build
         env:
-          CI: false
+          REACT_APP_OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+          REACT_APP_OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+        run: npm run build
           
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
           branch: gh-pages
           folder: build
-          clean: true
