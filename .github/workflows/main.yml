@@ -1,0 +1,64 @@
+# .github/workflows/main.yml
+name: Flight Delay App CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 */2 * * *'  # Run every 2 hours to test API connectivity
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      proxy:
+        image: node:18
+        ports:
+          - 3001:3001
+        options: >-
+          --health-cmd "curl -f http://localhost:3001/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+          OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+          PORT: 3001
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Start Proxy Server
+      run: |
+        node server.js &
+        echo "Waiting for proxy server to start..."
+        sleep 10
+      env:
+        OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+        OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+        PORT: 3001
+
+    - name: Run Tests
+      run: npm run test:api
+      env:
+        REACT_APP_API_URL: http://localhost:3001/api
+        OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME }}
+        OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+
+    # Add deployment step if needed
+    # - name: Deploy
+    #   if: github.ref == 'refs/heads/main'
+    #   run: |
+    #     # Add deployment commands
