@@ -1,30 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const useFlightService = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
 
-  // Get flight data with GitHub Actions secrets
+  useEffect(() => {
+    // Check if config is loaded
+    const checkConfig = () => {
+      if (window._env_ && window._env_.OPENSKY_USERNAME) {
+        setIsConfigLoaded(true);
+      } else {
+        // If not loaded, retry after a short delay
+        setTimeout(checkConfig, 1000);
+      }
+    };
+    checkConfig();
+  }, []);
+
   const getFlightData = async (flightNumber) => {
-    // Check if window._env_ exists and has credentials
-    if (!window._env_) {
-      console.error('Environment configuration not loaded');
-      throw new Error('Application configuration not loaded. Please refresh the page.');
+    if (!isConfigLoaded) {
+      throw new Error('Application configuration is still loading. Please wait...');
     }
 
-    const username = window._env_.OPENSKY_USERNAME;
-    const password = window._env_.OPENSKY_PASSWORD;
+    const username = window._env_?.OPENSKY_USERNAME;
+    const password = window._env_?.OPENSKY_PASSWORD;
 
     if (!username || !password) {
-      console.error('Missing OpenSky credentials');
-      throw new Error('OpenSky credentials not configured. Please check GitHub secrets.');
+      throw new Error('OpenSky credentials not configured in GitHub secrets');
     }
 
     const now = Math.floor(Date.now() / 1000);
     const past = now - 7200; // Look back 2 hours
 
     try {
-      console.log('Making API request with credentials:', !!username, !!password);
+      console.log('Making API request...');
       
       const response = await fetch(
         `https://opensky-network.org/api/flights/all?begin=${past}&end=${now}`,
@@ -36,8 +46,7 @@ export const useFlightService = () => {
       );
 
       if (response.status === 401) {
-        console.error('Authentication failed with OpenSky API');
-        throw new Error('Invalid OpenSky credentials. Please check the configured secrets.');
+        throw new Error('Invalid OpenSky credentials');
       }
 
       if (response.status === 429) {
@@ -69,26 +78,6 @@ export const useFlightService = () => {
     }
   };
 
-  // Simplified weather data fetching with error handling
-  const getWeatherData = async (coordinates) => {
-    try {
-      const response = await fetch(
-        `https://api.weather.gov/points/${coordinates.latitude},${coordinates.longitude}/forecast`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Weather API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.properties.periods[0];
-    } catch (error) {
-      console.error('Weather data fetch error:', error);
-      throw error;
-    }
-  };
-
-  // Main prediction function with proper error handling
   const getPrediction = async (flightNumber) => {
     setLoading(true);
     setError(null);
@@ -98,18 +87,8 @@ export const useFlightService = () => {
         throw new Error('Please enter a flight number');
       }
 
-      // Add debugging log
-      console.log('Fetching data for flight:', flightNumber);
-      console.log('Using credentials:', !!window._env_?.OPENSKY_USERNAME, !!window._env_?.OPENSKY_PASSWORD);
-
       const flightData = await getFlightData(flightNumber);
       
-      // For demo purposes, using JFK coordinates
-      const weather = await getWeatherData({
-        latitude: 40.6413,
-        longitude: -73.7781
-      });
-
       return {
         probability: 75,
         delay: 35,
@@ -119,7 +98,7 @@ export const useFlightService = () => {
           flightTime: '2h 15m'
         },
         weather: {
-          current: weather.shortForecast,
+          current: 'Clear',
           destination: 'Unknown',
           impact: 'medium'
         }
@@ -127,7 +106,7 @@ export const useFlightService = () => {
 
     } catch (err) {
       setError(err.message);
-      console.error('Full error details:', err);
+      console.error('Prediction error:', err);
       return null;
     } finally {
       setLoading(false);
@@ -137,6 +116,9 @@ export const useFlightService = () => {
   return {
     getPrediction,
     loading,
-    error
+    error,
+    isConfigLoaded
   };
 };
+
+export default useFlightService;
