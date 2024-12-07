@@ -1,39 +1,68 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const { MongoClient } = require('mongodb');
+// server.js
+import express from 'express';
+import { MongoClient } from 'mongodb';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import airportRoutes from './routes/airports.js';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the React build
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// MongoDB Connection
+let db;
 
-// API Routes
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
-});
-
-app.get('/api/db-test', async (req, res) => {
+async function connectToDatabase() {
   try {
     const client = await MongoClient.connect(process.env.MONGODB_URI);
-    await client.db('admin').command({ ping: 1 });
-    await client.close();
-    res.json({ status: 'Database connected successfully' });
+    db = client.db(process.env.MONGODB_DBNAME);
+    app.locals.db = db; // Make db accessible to route handlers
+    console.log('Connected to MongoDB successfully');
   } catch (error) {
-    res.status(500).json({ status: 'Database connection failed', error: error.message });
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
   }
+}
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Will My Flight Be Late API' });
 });
 
-// Serve React app for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date() });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Airport routes
+app.use('/api', airportRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
 });
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+
+async function startServer() {
+  await connectToDatabase();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+startServer().catch(console.error);
+
+export default app;
