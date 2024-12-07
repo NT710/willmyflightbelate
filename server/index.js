@@ -13,6 +13,14 @@ app.use(cors());
 app.use(express.json());
 app.use(createLimiter());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // MongoDB connection
 async function connectToMongoDB() {
   try {
@@ -32,22 +40,29 @@ connectToMongoDB().then(() => {
   // Routes
   app.use('/api', routes);
 
-  // Error handling middleware
+  // Enhanced error handling middleware
   app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ 
-      error: 'Something went wrong!',
-      message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    res.status(err.status || 500).json({
+      error: {
+        code: err.code || 'INTERNAL_SERVER_ERROR',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!',
+        details: process.env.NODE_ENV === 'development' ? err.details : undefined
+      },
+      timestamp: new Date().toISOString(),
+      path: req.path
     });
   });
 
   // Start server
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
   });
 }).catch(error => {
   console.error('Failed to start server:', error);
   process.exit(1);
 });
 
+// For testing purposes
 module.exports = app;
