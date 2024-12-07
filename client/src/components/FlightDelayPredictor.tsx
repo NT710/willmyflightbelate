@@ -1,23 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, ArrowRight, Cloud, Sun, AlertCircle } from 'lucide-react';
 
-// Creating simple alert components inline to avoid import issues
-const Alert = ({ children, variant, className }) => (
-  <div className={`p-4 rounded-lg border ${variant === 'destructive' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'} ${className}`}>
+// Inline UI components to avoid dependency issues
+const Alert = ({ children, variant = 'default', className = '' }: { 
+  children: React.ReactNode;
+  variant?: 'default' | 'destructive';
+  className?: string;
+}) => (
+  <div className={`rounded-lg border p-4 ${
+    variant === 'destructive' ? 'border-red-200 bg-red-50 text-red-900' : 'border-gray-200 bg-gray-50'
+  } ${className}`}>
     {children}
   </div>
 );
 
-const AlertTitle = ({ children }) => (
+const AlertTitle = ({ children }: { children: React.ReactNode }) => (
   <h5 className="font-medium text-sm mb-1">{children}</h5>
 );
 
-const AlertDescription = ({ children }) => (
+const AlertDescription = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm text-gray-600">{children}</p>
 );
 
-// PredictionDetails component remains the same
-const PredictionDetails = ({ prediction }) => {
+// Types for prediction data
+interface WeatherInfo {
+  current: string;
+  destination: string;
+  impact: string;
+}
+
+interface PlaneState {
+  currentLocation: string;
+  inboundDelay: number;
+  status: string;
+  flightTime: string;
+}
+
+interface PredictionPattern {
+  lastWeek: number[];
+  todayRank: number;
+  trend: string;
+}
+
+interface GateInfo {
+  scheduled: string;
+  likelihood: number;
+  alternatives: string[];
+}
+
+interface PredictionData {
+  probability: number;
+  delay: number;
+  planeState: PlaneState;
+  weather: WeatherInfo;
+  pattern: PredictionPattern;
+  gates: GateInfo;
+}
+
+// PredictionDetails component
+const PredictionDetails = ({ prediction }: { prediction: PredictionData }) => {
   return (
     <div className="space-y-6">
       {/* Weather Impact */}
@@ -97,17 +138,16 @@ const PredictionDetails = ({ prediction }) => {
   );
 };
 
-// Main component implementation stays exactly the same
+// Main component
 const FlightDelayPredictor = () => {
-  // ... [Previous state and functions remain exactly the same]
   const [loading, setLoading] = useState(false);
-  const [prediction, setPrediction] = useState(null);
+  const [prediction, setPrediction] = useState<PredictionData | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const [lastUpdateTime, setLastUpdateTime] = useState(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
 
-  const validateFlightNumber = (input) => {
+  const validateFlightNumber = (input: string) => {
     const airlineCode = input.substring(0, 2);
     const flightNum = input.substring(2).trim();
     
@@ -120,14 +160,14 @@ const FlightDelayPredictor = () => {
     return "";
   };
 
-  const handleFlightNumberChange = (e) => {
+  const handleFlightNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
     setFlightNumber(input);
     setValidationError(validateFlightNumber(input));
   };
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout;
     if (prediction) {
       interval = setInterval(() => {
         getPrediction(null, true);
@@ -137,11 +177,12 @@ const FlightDelayPredictor = () => {
     return () => clearInterval(interval);
   }, [prediction]);
 
-  const getPrediction = async (e, isAutoRefresh = false) => {
+  const getPrediction = async (e: React.FormEvent | null, isAutoRefresh = false) => {
     if (e) e.preventDefault();
     if (!isAutoRefresh) setLoading(true);
     setShowDetails(false);
     
+    // Simulate API call
     setTimeout(() => {
       setPrediction({
         probability: 75,
@@ -190,13 +231,14 @@ const FlightDelayPredictor = () => {
                   onChange={handleFlightNumberChange}
                   className="w-full h-20 text-3xl text-center tracking-wide rounded-2xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 transition-all font-light"
                   placeholder="UA 123"
-                  maxLength="6"
+                  maxLength={6}
                 />
                 <button
-                  disabled={loading || !flightNumber || validationError}
+                  disabled={loading || !flightNumber || !!validationError}
                   className={`absolute right-3 top-3 bottom-3 px-6 rounded-xl 
                     ${loading || validationError ? 'bg-gray-200' : 'bg-blue-500 hover:bg-blue-600'} 
                     text-white transition-all`}
+                  type="submit"
                 >
                   {loading ? (
                     <Clock className="h-6 w-6 animate-spin" />
