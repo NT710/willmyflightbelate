@@ -1,0 +1,26 @@
+name: Load MongoDB Data
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 1 */3 *'  # Run every 3 months
+
+jobs:
+  load-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install axios csv-parse mongodb
+        
+      - name: Load data
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: node server/scripts/loadData.js
