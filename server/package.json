@@ -4,15 +4,18 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "update-airports": "node scripts/airportDataProcessor.js"  // Added this script
   },
   "dependencies": {
     "express": "^4.18.2",
     "mongodb": "^6.3.0",
     "dotenv": "^16.3.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.0"  // Added this dependency
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
-  }
+  },
+  "type": "module"  // Added this to support ES modules
 }
