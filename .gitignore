@@ -4,8 +4,8 @@ node_modules/
 .pnp.js
 
 # Production
-client/dist
-client/build
+client/dist/
+client/build/
 
 # Environment files
 .env
@@ -19,15 +19,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Editor directories
+# Editor directories and files
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# OS generated files
+# System Files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
+Thumbs.db
