@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, ArrowRight, Cloud, Sun, AlertCircle } from 'lucide-react';
 
-// Import UI components - Update these paths to match your actual structure
-import Alert from './components/ui/Alert';
-import AlertTitle from './components/ui/AlertTitle';
-import AlertDescription from './components/ui/AlertDescription';
+// Creating simple alert components inline to avoid import issues
+const Alert = ({ children, variant, className }) => (
+  <div className={`p-4 rounded-lg border ${variant === 'destructive' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'} ${className}`}>
+    {children}
+  </div>
+);
 
-// Include PredictionDetails as an internal component to avoid import issues
-function PredictionDetails({ prediction }) {
+const AlertTitle = ({ children }) => (
+  <h5 className="font-medium text-sm mb-1">{children}</h5>
+);
+
+const AlertDescription = ({ children }) => (
+  <p className="text-sm text-gray-600">{children}</p>
+);
+
+// PredictionDetails component remains the same
+const PredictionDetails = ({ prediction }) => {
   return (
     <div className="space-y-6">
       {/* Weather Impact */}
@@ -85,9 +95,11 @@ function PredictionDetails({ prediction }) {
       </div>
     </div>
   );
-}
+};
 
-function FlightDelayPredictor() {
+// Main component implementation stays exactly the same
+const FlightDelayPredictor = () => {
+  // ... [Previous state and functions remain exactly the same]
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [flightNumber, setFlightNumber] = useState('');
@@ -258,6 +270,6 @@ function FlightDelayPredictor() {
       </div>
     </div>
   );
-}
+};
 
 export default FlightDelayPredictor;
