@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, ArrowRight, Cloud, Sun, Wind, AlertCircle, Check } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import PredictionDetails from './PredictionDetails';
 
 const FlightDelayPredictor = () => {
   const [loading, setLoading] = useState(false);
@@ -129,7 +130,54 @@ const FlightDelayPredictor = () => {
                 Last updated: {lastUpdateTime}
               </div>
             )}
-            {/* Your existing prediction display JSX */}
+            
+            {/* Main Prediction Band */}
+            <div className="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between px-8 overflow-hidden">
+              <div 
+                className={`absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 transition-transform duration-1000 
+                  ${showDetails ? 'translate-x-0' : '-translate-x-full'}`}
+                style={{ width: `${100 - prediction.probability}%` }}
+              />
+              <div className="relative text-white">
+                <div className="text-5xl font-light">{prediction.delay}'</div>
+                <div className="text-blue-100">predicted delay</div>
+              </div>
+              <div className="relative text-right text-white">
+                <div className="text-3xl font-light">{prediction.probability}%</div>
+                <div className="text-blue-100">confidence</div>
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className={`transition-all duration-500 ${showDetails ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              {/* Current Plane Status */}
+              <div className="p-6 border-b">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="font-medium text-gray-600">Current Status</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-sm text-gray-500">{prediction.planeState.status}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <div>{prediction.planeState.currentLocation}</div>
+                  <div>{prediction.planeState.flightTime} remaining</div>
+                </div>
+              </div>
+
+              {/* Prediction Details Component */}
+              <div className="p-6">
+                <PredictionDetails prediction={prediction} />
+              </div>
+            </div>
+
+            {/* Reset Button */}
+            <button
+              onClick={() => setPrediction(null)}
+              className="w-full p-4 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Check Another Flight
+            </button>
           </div>
         )}
       </div>
