@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, ArrowRight, Cloud, Sun, Wind, AlertCircle } from 'lucide-react';
+import { Clock, ArrowRight, Cloud, Sun, AlertCircle } from 'lucide-react';
 
-// Using relative imports instead of @ alias
-import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
+// Import UI components - Update these paths to match your actual structure
+import Alert from './components/ui/Alert';
+import AlertTitle from './components/ui/AlertTitle';
+import AlertDescription from './components/ui/AlertDescription';
 
-const PredictionDetails = ({ prediction }) => {
+// Include PredictionDetails as an internal component to avoid import issues
+function PredictionDetails({ prediction }) {
   return (
     <div className="space-y-6">
       {/* Weather Impact */}
@@ -82,9 +85,9 @@ const PredictionDetails = ({ prediction }) => {
       </div>
     </div>
   );
-};
+}
 
-const FlightDelayPredictor = () => {
+function FlightDelayPredictor() {
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [flightNumber, setFlightNumber] = useState('');
@@ -255,6 +258,6 @@ const FlightDelayPredictor = () => {
       </div>
     </div>
   );
-};
+}
 
 export default FlightDelayPredictor;
