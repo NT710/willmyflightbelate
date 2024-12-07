@@ -1,5 +1,6 @@
 // server/services/predictionService.js
 const HistoricalPatternService = require('./historicalPatternService');
+const ConfidenceScoringService = require('./confidenceScoringService');
 
 class PredictionService {
   constructor(db, weatherService, flightService) {
@@ -7,6 +8,7 @@ class PredictionService {
     this.weatherService = weatherService;
     this.flightService = flightService;
     this.historicalPatternService = new HistoricalPatternService(db);
+    this.confidenceScoringService = new ConfidenceScoringService(db);
     this.WEIGHTS = {
       weatherImpact: 0.35,
       historicalPattern: 0.30,
@@ -85,7 +87,7 @@ class PredictionService {
     );
   }
 
-  calculatePrediction(data) {
+  async calculatePrediction(data) {
     const {
       flight,
       departureWeather,
@@ -119,32 +121,57 @@ class PredictionService {
       (congestionScore * this.WEIGHTS.airportCongestion) * 100
     );
 
-    // Calculate confidence
-    const confidence = historicalAnalysis.confidence;
+    // Calculate enhanced confidence score
+    const confidenceResult = await this.confidenceScoringService.calculateConfidence({
+      historicalData: historicalAnalysis,
+      weatherData: {
+        forecastAge: departureWeather.age || 0,
+        weatherStability: departureWeather.stability || 0.5,
+        weatherStations: departureWeather.stations || 1,
+        weatherTrend: departureWeather.trend || 'stable'
+      },
+      flightData: flight,
+      predictionFactors: {
+        weatherImpact: weatherScore,
+        historicalPattern: historicalScore,
+        timeOfDay: timeScore,
+        congestion: congestionScore
+      }
+    });
 
     // Estimate delay duration
     const estimatedDelay = this.estimateDelayDuration(probability);
 
     return {
       probability,
-      confidence,
+      confidence: confidenceResult.confidence,
+      confidenceMetadata: confidenceResult.metadata,
       estimatedDelay,
       factors: {
         weather: {
           score: weatherScore,
           departure: departureWeather.condition,
-          arrival: arrivalWeather.condition
+          arrival: arrivalWeather.condition,
+          details: {
+            departureTemp: departureWeather.temperature,
+            departureWindSpeed: departureWeather.windSpeed,
+            arrivalTemp: arrivalWeather.temperature,
+            arrivalWindSpeed: arrivalWeather.windSpeed
+          }
         },
         historical: {
           score: historicalScore,
-          pattern: historicalAnalysis.patterns
+          pattern: historicalAnalysis.patterns,
+          reliability: historicalAnalysis.scores
         },
         timeOfDay: {
           score: timeScore,
-          hour: scheduledTime.getHours()
+          hour: scheduledTime.getHours(),
+          isPeakTime: timeScore > 0.5
         },
         congestion: {
-          score: congestionScore
+          score: congestionScore,
+          level: this.getCongestionLevel(congestionScore)
         }
       },
       updatedAt: new Date()
@@ -187,6 +214,12 @@ class PredictionService {
     // In a real implementation, this would fetch real-time airport congestion data
     // For now, return a default middle value
     return 0.5;
+  }
+
+  getCongestionLevel(score) {
+    if (score < 0.3) return 'Low';
+    if (score < 0.6) return 'Moderate';
+    return 'High';
   }
 
   estimateDelayDuration(probability) {
