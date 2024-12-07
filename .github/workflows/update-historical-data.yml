@@ -1,0 +1,29 @@
+```yaml
+# .github/workflows/update-historical-data.yml
+name: Update Historical Flight Data
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Run monthly on the 1st
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install axios csv-parse mongodb
+        
+      - name: Update historical data
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: node server/scripts/loadHistoricalData.js
+```
