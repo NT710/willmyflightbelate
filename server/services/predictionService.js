@@ -1,9 +1,12 @@
 // server/services/predictionService.js
+const HistoricalPatternService = require('./historicalPatternService');
+
 class PredictionService {
   constructor(db, weatherService, flightService) {
     this.db = db;
     this.weatherService = weatherService;
     this.flightService = flightService;
+    this.historicalPatternService = new HistoricalPatternService(db);
     this.WEIGHTS = {
       weatherImpact: 0.35,
       historicalPattern: 0.30,
@@ -14,6 +17,12 @@ class PredictionService {
 
   async getPrediction(flightNumber) {
     try {
+      // Check cache first
+      const cachedPrediction = await this.getCachedPrediction(flightNumber);
+      if (cachedPrediction) {
+        return cachedPrediction;
+      }
+
       // Get flight details
       const flightData = await this.flightService.getFlightData(flightNumber);
       
@@ -29,19 +38,20 @@ class PredictionService {
         )
       ]);
 
-      // Get historical data from MongoDB
-      const historicalData = await this.getHistoricalData(
-        flightData.departure.airport,
-        flightData.arrival.airport,
-        new Date(flightData.departure.scheduled)
-      );
+      // Get historical analysis
+      const historicalAnalysis = await this.historicalPatternService.analyzePatterns({
+        departureAirport: flightData.departure.airport,
+        arrivalAirport: flightData.arrival.airport,
+        scheduledTime: flightData.departure.scheduled,
+        airline: flightData.airline.code
+      });
 
       // Calculate prediction
       const prediction = await this.calculatePrediction({
         flight: flightData,
         departureWeather,
         arrivalWeather,
-        historicalData
+        historicalAnalysis
       });
 
       // Cache the prediction
@@ -54,17 +64,12 @@ class PredictionService {
     }
   }
 
-  async getHistoricalData(departureAirport, arrivalAirport, date) {
-    const route = `${departureAirport}-${arrivalAirport}`;
-    const month = date.getMonth() + 1;
-    
-    const historicalDelays = await this.db.collection('historical_delays').findOne({
-      route,
-      month,
-      year: date.getFullYear()
+  async getCachedPrediction(flightNumber) {
+    const cached = await this.db.collection('cache').findOne({
+      key: `prediction:${flightNumber}`,
+      expires_at: { $gt: new Date() }
     });
-
-    return historicalDelays || { stats: { avgDelay: 0, frequency: 0 } };
+    return cached ? cached.data : null;
   }
 
   async cachePrediction(flightNumber, prediction) {
@@ -85,7 +90,7 @@ class PredictionService {
       flight,
       departureWeather,
       arrivalWeather,
-      historicalData
+      historicalAnalysis
     } = data;
 
     // Weather impact calculation
@@ -99,7 +104,7 @@ class PredictionService {
     const timeScore = this.calculateTimeImpact(scheduledTime.getHours());
 
     // Historical pattern impact
-    const historicalScore = this.calculateHistoricalImpact(historicalData);
+    const historicalScore = historicalAnalysis.scores.routeReliability;
 
     // Airport congestion
     const congestionScore = this.calculateCongestionImpact(
@@ -115,11 +120,7 @@ class PredictionService {
     );
 
     // Calculate confidence
-    const confidence = this.calculateConfidence({
-      weatherDataAge: departureWeather.dataAge,
-      historicalDataPoints: historicalData.stats.totalFlights,
-      congestionDataAge: 0.1 // Placeholder for real-time data
-    });
+    const confidence = historicalAnalysis.confidence;
 
     // Estimate delay duration
     const estimatedDelay = this.estimateDelayDuration(probability);
@@ -129,16 +130,27 @@ class PredictionService {
       confidence,
       estimatedDelay,
       factors: {
-        weather: weatherScore,
-        historical: historicalScore,
-        timeOfDay: timeScore,
-        congestion: congestionScore
+        weather: {
+          score: weatherScore,
+          departure: departureWeather.condition,
+          arrival: arrivalWeather.condition
+        },
+        historical: {
+          score: historicalScore,
+          pattern: historicalAnalysis.patterns
+        },
+        timeOfDay: {
+          score: timeScore,
+          hour: scheduledTime.getHours()
+        },
+        congestion: {
+          score: congestionScore
+        }
       },
       updatedAt: new Date()
     };
   }
 
-  // Helper methods...
   calculateWeatherImpact(departureWeather, arrivalWeather) {
     const getWeatherScore = (condition) => {
       const scores = {
@@ -171,24 +183,10 @@ class PredictionService {
     return 0.2;
   }
 
-  calculateHistoricalImpact(historicalData) {
-    return Math.min(
-      (historicalData.stats.frequency * historicalData.stats.avgDelay) / 100,
-      1
-    );
-  }
-
   calculateCongestionImpact(airport) {
-    // Placeholder for real-time congestion data
+    // In a real implementation, this would fetch real-time airport congestion data
+    // For now, return a default middle value
     return 0.5;
-  }
-
-  calculateConfidence(data) {
-    let confidence = 90;
-    confidence -= (data.weatherDataAge > 1 ? 10 : 0);
-    confidence -= (data.congestionDataAge > 0.5 ? 10 : 0);
-    confidence *= (Math.min(data.historicalDataPoints / 100, 1));
-    return Math.round(confidence);
   }
 
   estimateDelayDuration(probability) {
