@@ -1,0 +1,27 @@
+name: Process Airport Data
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  workflow_dispatch:      # Allow manual triggers
+
+jobs:
+  process-airports:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run airport processor
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        MONGODB_DBNAME: ${{ secrets.MONGODB_DBNAME }}
+      run: node -r esm scripts/processAirports.js
