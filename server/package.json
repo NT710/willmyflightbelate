@@ -1,21 +1,21 @@
 {
   "name": "willmyflightbelate-server",
   "version": "1.0.0",
-  "main": "server.js",
+  "private": true,
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "update-airports": "node scripts/airportDataProcessor.js"  // Added this script
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "echo 'No build step required for Node.js'"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongodb": "^6.3.0",
-    "dotenv": "^16.3.1",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.0"  // Added this dependency
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "mongodb": "^5.3.0",
+    "node-fetch": "^3.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
-  "type": "module"  // Added this to support ES modules
+    "nodemon": "^2.0.22"
+  }
 }
