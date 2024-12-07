@@ -1,7 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, ArrowRight, Cloud, Sun, Wind, AlertCircle, Check } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import PredictionDetails from './PredictionDetails';
+import { Clock, ArrowRight, Cloud, Sun, Wind, AlertCircle } from 'lucide-react';
+
+// Using relative imports instead of @ alias
+import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
+
+const PredictionDetails = ({ prediction }) => {
+  return (
+    <div className="space-y-6">
+      {/* Weather Impact */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="col-span-2">
+          <div className="flex items-center gap-2 text-gray-600 mb-2">
+            <Cloud className="h-5 w-5" />
+            <span>Weather Impact</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">Current</span>
+              <div className="flex items-center gap-2">
+                <Sun className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm">{prediction.weather.current}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">Destination</span>
+              <div className="flex items-center gap-2">
+                <Cloud className="h-4 w-4 text-blue-500" />
+                <span className="text-sm">{prediction.weather.destination}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="text-4xl font-light text-yellow-500">
+            {prediction.pattern.todayRank}
+            <span className="text-sm text-gray-400">/7</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Pattern */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="font-medium text-gray-600">Last Week's Delays</div>
+          <div className="text-sm text-green-500">Trend: {prediction.pattern.trend}</div>
+        </div>
+        <div className="flex items-end justify-between h-24 gap-1">
+          {prediction.pattern.lastWeek.map((delay, i) => (
+            <div 
+              key={i}
+              className="w-full bg-blue-100 rounded-t transition-all duration-1000"
+              style={{ 
+                height: `${(delay / 45) * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-gray-400">
+          <span>M</span>
+          <span>T</span>
+          <span>W</span>
+          <span>T</span>
+          <span>F</span>
+          <span>S</span>
+          <span>S</span>
+        </div>
+      </div>
+
+      {/* Gate Information */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="font-medium text-gray-600">Expected Gate</div>
+          <div className="text-2xl mt-1">{prediction.gates.scheduled}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-sm text-gray-500">Alternatives</div>
+          <div className="text-sm mt-1">
+            {prediction.gates.alternatives.join(', ')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const FlightDelayPredictor = () => {
   const [loading, setLoading] = useState(false);
@@ -11,7 +92,6 @@ const FlightDelayPredictor = () => {
   const [validationError, setValidationError] = useState('');
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
 
-  // Validate flight number format
   const validateFlightNumber = (input) => {
     const airlineCode = input.substring(0, 2);
     const flightNum = input.substring(2).trim();
@@ -25,14 +105,12 @@ const FlightDelayPredictor = () => {
     return "";
   };
 
-  // Handle flight number input
   const handleFlightNumberChange = (e) => {
     const input = e.target.value.toUpperCase();
     setFlightNumber(input);
     setValidationError(validateFlightNumber(input));
   };
 
-  // Auto-refresh prediction every 5 minutes
   useEffect(() => {
     let interval;
     if (prediction) {
@@ -49,7 +127,6 @@ const FlightDelayPredictor = () => {
     if (!isAutoRefresh) setLoading(true);
     setShowDetails(false);
     
-    // Simulate API call with enhanced data
     setTimeout(() => {
       setPrediction({
         probability: 75,
@@ -131,7 +208,6 @@ const FlightDelayPredictor = () => {
               </div>
             )}
             
-            {/* Main Prediction Band */}
             <div className="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between px-8 overflow-hidden">
               <div 
                 className={`absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 transition-transform duration-1000 
@@ -148,9 +224,7 @@ const FlightDelayPredictor = () => {
               </div>
             </div>
 
-            {/* Additional Details */}
             <div className={`transition-all duration-500 ${showDetails ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              {/* Current Plane Status */}
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between mb-4">
                   <div className="font-medium text-gray-600">Current Status</div>
@@ -165,13 +239,11 @@ const FlightDelayPredictor = () => {
                 </div>
               </div>
 
-              {/* Prediction Details Component */}
               <div className="p-6">
                 <PredictionDetails prediction={prediction} />
               </div>
             </div>
 
-            {/* Reset Button */}
             <button
               onClick={() => setPrediction(null)}
               className="w-full p-4 text-gray-500 hover:text-gray-700 transition-colors"
