@@ -1,4 +1,3 @@
-// client/src/components/PredictionDetails.tsx
 import React from 'react';
 import { Plane, Cloud, Sun, MapPin } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
