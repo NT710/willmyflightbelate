@@ -3,7 +3,11 @@ services:
   - type: web
     name: willmyflightbelate-frontend
     env: static
-    buildCommand: cd client && npm install && npm run build
+    buildCommand: |
+      npm install
+      cd client
+      npm install
+      npm run build
     staticPublishPath: ./client/dist
     envVars:
       - key: NODE_VERSION
@@ -15,7 +19,10 @@ services:
   - type: web
     name: willmyflightbelate-backend
     env: node
-    buildCommand: cd server && npm install
+    buildCommand: |
+      npm install
+      cd server
+      npm install
     startCommand: cd server && npm start
     envVars:
       - key: NODE_VERSION
@@ -23,7 +30,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        sync: false # Will be set manually in Render dashboard
+        sync: false
       - key: AVIATION_STACK_KEY
         sync: false
       - key: OPENWEATHER_KEY
