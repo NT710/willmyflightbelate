@@ -14,14 +14,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthrough": true,
-    "baseUrl": "./src",
+    "noFallthrough": false,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
-    },
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
