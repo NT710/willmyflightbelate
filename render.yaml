@@ -4,9 +4,8 @@ services:
     name: willmyflightbelate-frontend
     env: static
     buildCommand: |
-      npm install
       cd client
-      npm install
+      npm install --legacy-peer-deps
       npm run build
     staticPublishPath: ./client/dist
     envVars:
@@ -20,9 +19,8 @@ services:
     name: willmyflightbelate-backend
     env: node
     buildCommand: |
-      npm install
       cd server
-      npm install
+      npm install --legacy-peer-deps
     startCommand: cd server && npm start
     envVars:
       - key: NODE_VERSION
