@@ -1,0 +1,51 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install Root Dependencies
+        run: npm ci
+        
+      - name: Install Client Dependencies
+        working-directory: ./client
+        run: npm ci
+        
+      - name: Install Server Dependencies
+        working-directory: ./server
+        run: npm ci
+        
+      - name: Build Client
+        working-directory: ./client
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          
+      - name: Build Server
+        working-directory: ./server
+        run: npm run build
+        
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+          -H "accept: application/json" \
+          -H "authorization: Bearer $RENDER_API_KEY"
