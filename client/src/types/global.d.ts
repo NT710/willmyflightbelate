@@ -1,22 +1,25 @@
 /// <reference types="vite/client" />
 
-declare module '*.svg' {
-  const content: React.FC<React.SVGProps<SVGSVGElement>>;
-  export default content;
-}
+import React from 'react';
 
-declare module 'react' {
-  interface CSSProperties {
-    [key: string]: any;
+declare module 'lucide-react';
+
+declare module '@/*';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [elem: string]: any
+    }
   }
 }
 
-declare module 'lucide-react'
-
-interface ImportMetaEnv {
-  readonly VITE_API_URL: string
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv
+declare module "react" {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    className?: string;
+  }
+  
+  interface CSSProperties {
+    [key: string]: any;
+  }
 }
