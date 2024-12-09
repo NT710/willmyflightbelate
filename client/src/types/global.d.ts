@@ -1,9 +1,7 @@
 /// <reference types="vite/client" />
-/// <reference types="react" />
-/// <reference types="react-dom" />
 
 declare module '*.svg' {
-  const content: any;
+  const content: React.FC<React.SVGProps<SVGSVGElement>>;
   export default content;
 }
 
@@ -13,4 +11,12 @@ declare module 'react' {
   }
 }
 
-declare module 'lucide-react';
+declare module 'lucide-react'
+
+interface ImportMetaEnv {
+  readonly VITE_API_URL: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
