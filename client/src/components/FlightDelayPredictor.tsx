@@ -1,28 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, ArrowRight, Cloud, Sun, AlertCircle } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
 
-// Inline UI components to avoid dependency issues
-const Alert = ({ children, variant = 'default', className = '' }: { 
-  children: React.ReactNode;
-  variant?: 'default' | 'destructive';
-  className?: string;
-}) => (
-  <div className={`rounded-lg border p-4 ${
-    variant === 'destructive' ? 'border-red-200 bg-red-50 text-red-900' : 'border-gray-200 bg-gray-50'
-  } ${className}`}>
-    {children}
-  </div>
-);
-
-const AlertTitle = ({ children }: { children: React.ReactNode }) => (
-  <h5 className="font-medium text-sm mb-1">{children}</h5>
-);
-
-const AlertDescription = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-sm text-gray-600">{children}</p>
-);
-
-// Types for prediction data
 interface WeatherInfo {
   current: string;
   destination: string;
@@ -57,8 +36,7 @@ interface PredictionData {
   gates: GateInfo;
 }
 
-// PredictionDetails component
-const PredictionDetails = ({ prediction }: { prediction: PredictionData }) => {
+const PredictionDetails: React.FC<{ prediction: PredictionData }> = ({ prediction }) => {
   return (
     <div className="space-y-6">
       {/* Weather Impact */}
@@ -105,7 +83,7 @@ const PredictionDetails = ({ prediction }: { prediction: PredictionData }) => {
               key={i}
               className="w-full bg-blue-100 rounded-t transition-all duration-1000"
               style={{ 
-                height: `${(delay / 45) * 100}%`,
+                height: `${(delay / 45) * 100}%`
               }}
             />
           ))}
@@ -138,8 +116,7 @@ const PredictionDetails = ({ prediction }: { prediction: PredictionData }) => {
   );
 };
 
-// Main component
-const FlightDelayPredictor = () => {
+const FlightDelayPredictor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
@@ -147,7 +124,7 @@ const FlightDelayPredictor = () => {
   const [validationError, setValidationError] = useState('');
   const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
 
-  const validateFlightNumber = (input: string) => {
+  const validateFlightNumber = (input: string): string => {
     const airlineCode = input.substring(0, 2);
     const flightNum = input.substring(2).trim();
     
@@ -249,9 +226,11 @@ const FlightDelayPredictor = () => {
               </div>
               
               {validationError && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Invalid Flight Number</AlertTitle>
+                <Alert variant="destructive">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Invalid Flight Number</AlertTitle>
+                  </div>
                   <AlertDescription>{validationError}</AlertDescription>
                 </Alert>
               )}
