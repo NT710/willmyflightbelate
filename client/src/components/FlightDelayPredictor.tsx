@@ -1,120 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, ArrowRight, Cloud, Sun, AlertCircle } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
-
-interface WeatherInfo {
-  current: string;
-  destination: string;
-  impact: string;
-}
-
-interface PlaneState {
-  currentLocation: string;
-  inboundDelay: number;
-  status: string;
-  flightTime: string;
-}
-
-interface PredictionPattern {
-  lastWeek: number[];
-  todayRank: number;
-  trend: string;
-}
-
-interface GateInfo {
-  scheduled: string;
-  likelihood: number;
-  alternatives: string[];
-}
-
-interface PredictionData {
-  probability: number;
-  delay: number;
-  planeState: PlaneState;
-  weather: WeatherInfo;
-  pattern: PredictionPattern;
-  gates: GateInfo;
-}
-
-const PredictionDetails: React.FC<{ prediction: PredictionData }> = ({ prediction }) => {
-  return (
-    <div className="space-y-6">
-      {/* Weather Impact */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
-            <Cloud className="h-5 w-5" />
-            <span>Weather Impact</span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Current</span>
-              <div className="flex items-center gap-2">
-                <Sun className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">{prediction.weather.current}</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Destination</span>
-              <div className="flex items-center gap-2">
-                <Cloud className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">{prediction.weather.destination}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center">
-          <div className="text-4xl font-light text-yellow-500">
-            {prediction.pattern.todayRank}
-            <span className="text-sm text-gray-400">/7</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Pattern */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="font-medium text-gray-600">Last Week's Delays</div>
-          <div className="text-sm text-green-500">Trend: {prediction.pattern.trend}</div>
-        </div>
-        <div className="flex items-end justify-between h-24 gap-1">
-          {prediction.pattern.lastWeek.map((delay, i) => (
-            <div 
-              key={i}
-              className="w-full bg-blue-100 rounded-t transition-all duration-1000"
-              style={{ 
-                height: `${(delay / 45) * 100}%`
-              }}
-            />
-          ))}
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-400">
-          <span>M</span>
-          <span>T</span>
-          <span>W</span>
-          <span>T</span>
-          <span>F</span>
-          <span>S</span>
-          <span>S</span>
-        </div>
-      </div>
-
-      {/* Gate Information */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="font-medium text-gray-600">Expected Gate</div>
-          <div className="text-2xl mt-1">{prediction.gates.scheduled}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-500">Alternatives</div>
-          <div className="text-sm mt-1">
-            {prediction.gates.alternatives.join(', ')}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { Clock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
+import PredictionDetails from './PredictionDetails';
+import { PredictionData } from '../types/prediction';
 
 const FlightDelayPredictor: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -149,7 +37,7 @@ const FlightDelayPredictor: React.FC = () => {
       interval = setInterval(() => {
         getPrediction(null, true);
         setLastUpdateTime(new Date().toLocaleTimeString());
-      }, 300000); // 5 minutes
+      }, 300000);
     }
     return () => clearInterval(interval);
   }, [prediction]);
@@ -159,7 +47,6 @@ const FlightDelayPredictor: React.FC = () => {
     if (!isAutoRefresh) setLoading(true);
     setShowDetails(false);
     
-    // Simulate API call
     setTimeout(() => {
       setPrediction({
         probability: 75,
