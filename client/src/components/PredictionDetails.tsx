@@ -1,28 +1,10 @@
 import React from 'react';
 import { Cloud, Sun } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { PredictionData } from '../types/prediction';
 
 interface PredictionDetailsProps {
-  prediction: {
-    weather: {
-      current: string;
-      destination: string;
-    };
-    pattern: {
-      lastWeek: number[];
-      todayRank: number;
-      trend: string;
-    };
-    gates: {
-      scheduled: string;
-      alternatives: string[];
-    };
-    planeState: {
-      status: string;
-      currentLocation: string;
-      flightTime: string;
-    };
-  };
+  prediction: PredictionData;
 }
 
 const PredictionDetails: React.FC<PredictionDetailsProps> = ({ prediction }) => {
