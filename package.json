@@ -2,12 +2,18 @@
   "name": "willmyflightbelate",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "engines": {
     "node": "18.x",
     "npm": "9.x"
   },
   "scripts": {
-    "build": "cd client && npm i --legacy-peer-deps && NODE_ENV=production npm run build && cd ../server && npm install",
-    "start": "node server/index.js"
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm install && npm run build",
+    "build:server": "cd server && npm install",
+    "start": "cd server && npm start"
   }
 }
