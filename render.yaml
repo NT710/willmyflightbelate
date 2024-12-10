@@ -1,13 +1,24 @@
 services:
-  - name: flight-delay-predictor
-    type: web
-    env: node
+  # Frontend Service
+  - type: web
+    name: willmyflightbelate-frontend
+    env: static
     buildCommand: npm run build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: NPM_VERSION
+        value: 9.x
+
+  # Backend Service
+  - type: web
+    name: willmyflightbelate-backend
+    env: node
+    buildCommand: cd server && npm install --legacy-peer-deps
     startCommand: npm start
-    plan: free
-    region: oregon
-    envVarsFromSecrets:
-      - MONGODB_URI
-      - REDIS_URL
-      - WEATHERSTACK_KEY
-      - AVIATION_STACK_KEY
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: NPM_VERSION
+        value: 9.x
