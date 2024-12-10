@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+// FlightDelayPredictor.tsx
+import { useState, useEffect, FC } from 'react';
 import PredictionDetails from './PredictionDetails';
-import Alert from './alert';
+import Alert from './ui/alert';
 
-const FlightDelayPredictor: React.FC = () => {
-  const [flightNumber, setFlightNumber] = useState('');
+const FlightDelayPredictor: FC = () => {
+  const [flightNumber, setFlightNumber] = useState<string>('');
   const [prediction, setPrediction] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,7 +15,7 @@ const FlightDelayPredictor: React.FC = () => {
     }
   }, [error]);
 
-  const fetchPrediction = async () => {
+  const fetchPrediction = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/predictions/${flightNumber}`);
       if (!response.ok) {
