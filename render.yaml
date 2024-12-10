@@ -8,7 +8,7 @@ services:
       echo "Building frontend..."
       cd client
       npm install --legacy-peer-deps
-      CI='' npm run build
+      npm run build
       
       # Build backend
       echo "Building backend..."
