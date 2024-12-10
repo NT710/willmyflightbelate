@@ -8,18 +8,21 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-  server: {
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
+    }
+  },
+  // Add base URL for production
+  base: '/',
+  // Configure dev server
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://willmyflightbelate-api.onrender.com',
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 })
