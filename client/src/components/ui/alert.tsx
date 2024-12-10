@@ -1,7 +1,4 @@
-// alert.tsx
-import React from 'react';
-import type { FC } from 'react';
-import './alert.css'; // Assuming CSS for styling is present
+import { FC } from 'react';
 
 type AlertProps = {
   message: string;
@@ -10,12 +7,7 @@ type AlertProps = {
 
 const Alert: FC<AlertProps> = ({ message, type }) => {
   const alertClass = `alert alert-${type}`;
-
-  return (
-    <div className={alertClass} role="alert">
-      {message}
-    </div>
-  );
+  return <div className={alertClass}>{message}</div>;
 };
 
 export default Alert;
