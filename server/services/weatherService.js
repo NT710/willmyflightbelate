@@ -2,7 +2,7 @@ const axios = require('axios');
 
 class WeatherService {
   constructor() {
-    this.apiKey = process.env.WEATHERSTACK_KEY;
+    this.apiKey = process.env.WEATHERSTACK_KEY; // Access key from GitHub Secrets
     this.baseUrl = 'http://api.weatherstack.com/current';
   }
 
