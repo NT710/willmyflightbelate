@@ -1,10 +1,8 @@
-// FlightDelayPredictor.tsx
-import React, { useState, useEffect } from 'react';
-import type { FC } from 'react';
+import { useState, useEffect } from 'react';
 import PredictionDetails from './PredictionDetails';
 import Alert from './alert';
 
-const FlightDelayPredictor: FC = () => {
+const FlightDelayPredictor: React.FC = () => {
   const [flightNumber, setFlightNumber] = useState('');
   const [prediction, setPrediction] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +22,7 @@ const FlightDelayPredictor: FC = () => {
       }
       const data = await response.json();
       setPrediction(data);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };
