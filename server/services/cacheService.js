@@ -1,32 +1,18 @@
 const Redis = require('ioredis');
 
-class CacheService {
-  constructor() {
-    this.redis = new Redis(process.env.REDIS_URL);
-  }
+// Create a Redis client instance
+const redis = new Redis({
+  host: process.env.REDIS_HOST || '127.0.0.1', // Default to localhost
+  port: process.env.REDIS_PORT || 6379, // Default Redis port
+  password: process.env.REDIS_PASSWORD || null, // Add if using Redis with authentication
+});
 
-  async get(key) {
-    try {
-      const value = await this.redis.get(key);
-      return value ? JSON.parse(value) : null;
-    } catch (error) {
-      console.error('Cache get error:', error);
-      return null;
-    }
-  }
+redis.on('connect', () => {
+  console.log('Connected to Redis successfully');
+});
 
-  async set(key, value, ttlSeconds = 300) {
-    try {
-      await this.redis.set(
-        key,
-        JSON.stringify(value),
-        'EX',
-        ttlSeconds
-      );
-    } catch (error) {
-      console.error('Cache set error:', error);
-    }
-  }
-}
+redis.on('error', (err) => {
+  console.error('Redis connection error:', err);
+});
 
-module.exports = CacheService;
+module.exports = redis;
