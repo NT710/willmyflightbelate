@@ -5,8 +5,13 @@ const routes = require('./routes');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Configure CORS for frontend
+app.use(cors({
+  origin: 'https://willmyflightbelate.onrender.com',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // API Routes
@@ -20,13 +25,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root API endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Will My Flight Be Late API',
+    version: '1.0.0',
+    status: 'running'
+  });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something broke!' });
 });
 
-// Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
