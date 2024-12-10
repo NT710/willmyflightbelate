@@ -1,28 +1,21 @@
+// alert.tsx
 import React from 'react';
+import type { FC } from 'react';
+import './alert.css'; // Assuming CSS for styling is present
 
-interface AlertProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'destructive';
-  className?: string;
-}
+type AlertProps = {
+  message: string;
+  type: 'success' | 'error' | 'info';
+};
 
-export const Alert: React.FC<AlertProps> = ({ children, variant = 'default', className = '' }) => {
-  const baseStyles = "rounded-lg border p-4";
-  const variantStyles = variant === 'destructive' 
-    ? "border-red-200 bg-red-50 text-red-900" 
-    : "border-gray-200 bg-gray-50";
+const Alert: FC<AlertProps> = ({ message, type }) => {
+  const alertClass = `alert alert-${type}`;
 
   return (
-    <div className={`${baseStyles} ${variantStyles} ${className}`}>
-      {children}
+    <div className={alertClass} role="alert">
+      {message}
     </div>
   );
 };
 
-export const AlertTitle = ({ children }: { children: React.ReactNode }) => (
-  <h5 className="font-medium mb-1">{children}</h5>
-);
-
-export const AlertDescription = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-sm">{children}</p>
-);
+export default Alert;
