@@ -10,18 +10,17 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// API Routes first
+// API Routes must be before the static file handling
 app.use('/api', routes);
 
-// Static files
+// Static file serving
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve React app for all other routes
+// This must be the last route - it handles all other requests
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
