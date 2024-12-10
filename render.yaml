@@ -5,6 +5,7 @@ services:
     plan: free
     buildCommand: |
       # Debug information
+      echo "Starting build process..."
       echo "Current directory: $(pwd)"
       
       # Build frontend
@@ -12,12 +13,19 @@ services:
       cd client
       npm install --legacy-peer-deps
       npm run build
+      echo "Frontend build complete"
+      ls -la dist
       
       # Setup directories and copy files
       echo "Setting up static files..."
       cd ..
+      rm -rf server/public
       mkdir -p server/public
-      cp -rv client/dist/* server/public/
+      echo "Copying files from client/dist to server/public"
+      cp -r client/dist/* server/public/ || echo "Error copying files"
+      
+      # Verify frontend files
+      echo "Verifying frontend files..."
       ls -la server/public
       
       # Build backend
@@ -25,9 +33,14 @@ services:
       cd server
       npm install --legacy-peer-deps
       
-      # Verify files
-      echo "Verifying files..."
+      # Final verification
+      echo "Final file verification..."
+      pwd
       ls -la public/
+      if [ ! -f "public/index.html" ]; then
+        echo "Error: index.html not found in server/public"
+        exit 1
+      fi
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
