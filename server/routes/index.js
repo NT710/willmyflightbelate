@@ -1,21 +1,21 @@
 const express = require('express');
-const weatherService = require('../services/weatherService');
+const weatherService = require('../services/weatherService'); // Example API service
 
 const router = express.Router();
 
-// Health check route
+// Example Health Check
 router.get('/health', (req, res) => {
   res.status(200).send({ status: 'Healthy' });
 });
 
-// Example weather route
+// Example Weather API
 router.get('/weather/:airportCode', async (req, res) => {
   try {
     const { airportCode } = req.params;
-    const weatherData = await weatherService.getAirportWeather(airportCode);
-    res.json(weatherData);
-  } catch (error) {
-    console.error('Error fetching weather:', error);
+    const data = await weatherService.getWeather(airportCode);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
     res.status(500).send({ error: 'Failed to fetch weather data' });
   }
 });
