@@ -1,23 +1,18 @@
 services:
-  # Static Frontend Service
-  - type: static
-    name: willmyflightbelate
-    buildCommand: cd client && npm install --legacy-peer-deps && npm run build
-    staticPublishPath: ./client/dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-
-  # Backend API Service
   - type: web
-    name: willmyflightbelate-api
+    name: willmyflightbelate
     env: node
-    buildCommand: cd server && npm install --legacy-peer-deps
+    buildCommand: |
+      # Build frontend
+      cd client
+      npm install --legacy-peer-deps
+      npm run build
+      
+      # Build backend
+      cd ../server
+      npm install --legacy-peer-deps
+      mkdir -p public
+      cp -r ../client/dist/* public/
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
