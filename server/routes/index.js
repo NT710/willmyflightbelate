@@ -3,10 +3,12 @@ const weatherService = require('../services/weatherService');
 
 const router = express.Router();
 
+// Health check route
 router.get('/health', (req, res) => {
   res.status(200).send({ status: 'Healthy' });
 });
 
+// Example weather route
 router.get('/weather/:airportCode', async (req, res) => {
   try {
     const { airportCode } = req.params;
