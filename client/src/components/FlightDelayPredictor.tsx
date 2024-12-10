@@ -1,51 +1,55 @@
-// FlightDelayPredictor.tsx
-import { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect } from 'react';
+import { FC } from 'react';
 import PredictionDetails from './PredictionDetails';
-import Alert from './ui/alert';
+
+type FlightData = {
+  flight: string;
+  probability: number;
+  delay: string;
+  factors: string[];
+};
 
 const FlightDelayPredictor: FC = () => {
-  const [flightNumber, setFlightNumber] = useState<string>('');
-  const [prediction, setPrediction] = useState<any>(null);
+  const [flightData, setFlightData] = useState<FlightData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
-  const fetchPrediction = async (): Promise<void> => {
-    try {
-      const response = await fetch(`/api/predictions/${flightNumber}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch prediction');
+    // Example fetch logic for demonstration purposes
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/flight-predictor');
+        if (!response.ok) {
+          throw new Error('Failed to fetch flight data');
+        }
+        const data: FlightData = await response.json();
+        setFlightData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setPrediction(data);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading flight data...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div>
       <h1>Flight Delay Predictor</h1>
-      <input
-        type="text"
-        value={flightNumber}
-        onChange={(e) => setFlightNumber(e.target.value)}
-        placeholder="Enter flight number"
-      />
-      <button onClick={fetchPrediction}>Get Prediction</button>
-      {error && <Alert message={error} type="error" />}
-      {prediction && (
+      {flightData ? (
         <PredictionDetails
-          flight={prediction.flight}
-          probability={prediction.probability}
-          delay={prediction.delay}
-          factors={prediction.factors}
+          flight={flightData.flight}
+          probability={flightData.probability}
+          delay={flightData.delay}
+          factors={flightData.factors}
         />
+      ) : (
+        <p>No flight data available.</p>
       )}
     </div>
   );
