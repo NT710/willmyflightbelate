@@ -1,20 +1,21 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const cacheService = require('./services/cacheService'); // Ensure this path is correct
-const routes = require('./routes');
+const weatherService = require('../services/weatherService');
 
-dotenv.config();
+const router = express.Router();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-app.use('/api', routes);
-
-app.get('/', (req, res) => {
-  res.send('Server is up and running!');
+router.get('/health', (req, res) => {
+  res.status(200).send({ status: 'Healthy' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+router.get('/weather/:airportCode', async (req, res) => {
+  try {
+    const { airportCode } = req.params;
+    const weatherData = await weatherService.getAirportWeather(airportCode);
+    res.json(weatherData);
+  } catch (error) {
+    console.error('Error fetching weather:', error);
+    res.status(500).send({ error: 'Failed to fetch weather data' });
+  }
 });
+
+module.exports = router;
