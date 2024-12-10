@@ -3,36 +3,34 @@ services:
     name: willmyflightbelate
     env: node
     buildCommand: |
-      echo "Starting build process..."
-      echo "Current directory: $(pwd)"
-      ls -la
+      # Debug start
+      echo "Starting build process from $(pwd)"
+      
+      # Build frontend
+      echo "Installing frontend dependencies..."
+      cd /opt/render/project/src/client
+      npm install --legacy-peer-deps
       
       echo "Building frontend..."
-      cd client
-      echo "Client directory contents:"
-      ls -la
-      npm install --legacy-peer-deps
       npm run build
-      echo "Build output:"
-      ls -la dist
       
-      echo "Setting up server..."
-      cd ../server
-      echo "Server directory contents:"
-      ls -la
+      # Build backend
+      echo "Installing backend dependencies..."
+      cd /opt/render/project/src/server
       npm install --legacy-peer-deps
       
       echo "Creating public directory..."
-      mkdir -p public
+      mkdir -p /opt/render/project/src/server/public
       
       echo "Copying frontend files..."
-      cp -rv ../client/dist/* public/
+      cp -r /opt/render/project/src/client/dist/* /opt/render/project/src/server/public/
       
-      echo "Final directory structure:"
-      ls -la
-      echo "Public directory contents:"
+      echo "Verifying public directory..."
+      ls -la /opt/render/project/src/server/public
+    startCommand: |
+      cd /opt/render/project/src/server
       ls -la public
-    startCommand: cd server && node index.js
+      node index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
