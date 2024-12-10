@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "build": "echo 'No build step required for Node.js'",
-    "postinstall": "echo 'Ensure MongoDB is running and accessible'"
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
