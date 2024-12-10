@@ -1,28 +1,11 @@
 services:
-  # Frontend Service
   - type: web
-    name: willmyflightbelate-frontend
-    env: static
-    buildCommand: |
-      cd client
-      npm install --legacy-peer-deps
-      npm run build
-    staticPublishPath: ./client/build
-    envVars:
-      - key: NODE_VERSION
-        value: 18.x
-
-  # Backend Service
-  - type: web
-    name: willmyflightbelate-backend
+    name: willmyflightbelate
     env: node
     buildCommand: |
-      cd server
-      rm -rf node_modules package-lock.json
-      npm install --legacy-peer-deps
+      cd client && npm install --legacy-peer-deps && npm run build
+      cd ../server && npm install --legacy-peer-deps
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
-      - key: MONGODB_URI
-        sync: false
