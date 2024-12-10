@@ -1,6 +1,7 @@
+// main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import FlightDelayPredictor from './FlightDelayPredictor';
+import FlightDelayPredictor from './components/FlightDelayPredictor';
 
 const container = document.getElementById('root');
 if (!container) {
