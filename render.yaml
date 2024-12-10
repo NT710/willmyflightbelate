@@ -1,32 +1,13 @@
 services:
-  # Frontend Service
-  - type: web
-    name: willmyflightbelate-client
-    env: static
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: ./client/dist
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
-
-  # Backend Service
-  - type: web
-    name: willmyflightbelate-server
+  - name: flight-delay-predictor
+    type: web
     env: node
-    buildCommand: cd server && npm install
-    startCommand: cd server && npm start
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-      - key: NODE_ENV
-        value: production
-      - key: MONGODB_URI
-        sync: false
-      - key: AVIATION_STACK_KEY
-        sync: false
-      - key: OPENWEATHER_KEY
-        sync: false
+    buildCommand: npm run build
+    startCommand: npm start
+    plan: free
+    region: oregon
+    envVarsFromSecrets:
+      - MONGODB_URI
+      - REDIS_URL
+      - WEATHERSTACK_KEY
+      - AVIATION_STACK_KEY
