@@ -7,22 +7,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
-    }
-  },
-  // Add base URL for production
-  base: '/',
-  // Configure dev server
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://willmyflightbelate-api.onrender.com',
-        changeOrigin: true,
-        secure: false
-      }
     }
   }
 })
