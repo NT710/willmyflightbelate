@@ -1,8 +1,6 @@
-// main.tsx
-import React from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import FlightDelayPredictor from './FlightDelayPredictor';
-import './index.css'; // Assuming global CSS is present
 
 const container = document.getElementById('root');
 if (!container) {
@@ -12,7 +10,7 @@ if (!container) {
 const root = createRoot(container);
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <FlightDelayPredictor />
-  </React.StrictMode>
+  </StrictMode>
 );
