@@ -1,18 +1,27 @@
-const Redis = require('ioredis');
+// Simple in-memory cache implementation
+class CacheService {
+  constructor() {
+    this.cache = new Map();
+  }
 
-// Create a Redis client instance
-const redis = new Redis({
-  host: process.env.REDIS_HOST || '127.0.0.1', // Default to localhost
-  port: process.env.REDIS_PORT || 6379, // Default Redis port
-  password: process.env.REDIS_PASSWORD || null, // Add if using Redis with authentication
-});
+  async get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (item.expiry < Date.now()) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value;
+  }
 
-redis.on('connect', () => {
-  console.log('Connected to Redis successfully');
-});
+  async set(key, value, ttlSeconds = 300) {
+    this.cache.set(key, {
+      value,
+      expiry: Date.now() + (ttlSeconds * 1000)
+    });
+  }
+}
 
-redis.on('error', (err) => {
-  console.error('Redis connection error:', err);
-});
-
-module.exports = redis;
+module.exports = CacheService;
