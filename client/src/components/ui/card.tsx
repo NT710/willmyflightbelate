@@ -1,3 +1,4 @@
+// card.tsx
 import { FC } from 'react';
 
 type CardProps = {
