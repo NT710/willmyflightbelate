@@ -1,48 +1,24 @@
 services:
-  - type: web
-    name: willmyflightbelate
-    env: node
-    plan: free
+  # Frontend Service
+  - type: static
+    name: willmyflightbelate-frontend
     buildCommand: |
-      # Print working directory
-      pwd
-      ls -la
-      
-      # Build frontend
-      echo "Building frontend..."
       cd client
-      pwd
       npm install --legacy-peer-deps
       npm run build
-      echo "Frontend build output:"
-      ls -la dist
-      
-      # Copy frontend build to server
-      echo "Setting up server files..."
-      cd ..
-      pwd
-      echo "Creating server public directory..."
-      rm -rf server/public
-      mkdir -p server/public
-      
-      echo "Copying frontend files..."
-      cp -rv client/dist/* server/public/
-      
-      echo "Verifying server public directory..."
-      ls -la server/public
-      
-      # Build backend
-      echo "Building backend..."
+    staticPublishPath: client/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+
+  # Backend Service
+  - type: web
+    name: willmyflightbelate-backend
+    env: node
+    buildCommand: |
       cd server
-      pwd
       npm install --legacy-peer-deps
-      
-      # Final verification
-      echo "Final file check:"
-      ls -la
-      echo "Public directory contents:"
-      ls -la public
-    startCommand: cd server && NODE_ENV=production node index.js
+    startCommand: node index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
