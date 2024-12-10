@@ -1,11 +1,24 @@
 services:
+  # Combined Frontend & Backend Service
   - type: web
     name: willmyflightbelate
     env: node
+    plan: free
     buildCommand: |
-      cd client && npm install --legacy-peer-deps && npm run build
-      cd ../server && npm install --legacy-peer-deps
+      # Install and build frontend
+      echo "Building frontend..."
+      cd client
+      npm install --legacy-peer-deps
+      npm run build
+      cd ..
+      
+      # Install backend dependencies
+      echo "Building backend..."
+      cd server
+      npm install --legacy-peer-deps
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
+      - key: NODE_ENV
+        value: production
