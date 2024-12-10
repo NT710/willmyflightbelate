@@ -3,19 +3,29 @@ services:
   - type: web
     name: willmyflightbelate-frontend
     env: static
-    buildCommand: npm run build
+    buildCommand: |
+      echo "Installing frontend dependencies..."
+      cd client
+      npm install --legacy-peer-deps --verbose
+      echo "Building frontend..."
+      npm run build --verbose
     staticPublishPath: ./client/dist
     envVars:
       - key: NODE_VERSION
         value: 18.x
       - key: NPM_VERSION
         value: 9.x
+      - key: CI
+        value: true
 
   # Backend Service
   - type: web
     name: willmyflightbelate-backend
     env: node
-    buildCommand: cd server && npm install --legacy-peer-deps
+    buildCommand: |
+      echo "Installing backend dependencies..."
+      cd server
+      npm install --legacy-peer-deps --verbose
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
