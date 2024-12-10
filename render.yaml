@@ -1,25 +1,33 @@
 services:
-  # Combined Frontend & Backend Service
   - type: web
     name: willmyflightbelate
     env: node
     plan: free
     buildCommand: |
+      # Debug information
+      echo "Current directory: $(pwd)"
+      
       # Build frontend
       echo "Building frontend..."
       cd client
       npm install --legacy-peer-deps
       npm run build
       
-      # Move the build to public directory
+      # Setup directories and copy files
       echo "Setting up static files..."
-      mkdir -p ../server/public
-      cp -r dist/* ../server/public/
+      cd ..
+      mkdir -p server/public
+      cp -rv client/dist/* server/public/
+      ls -la server/public
       
       # Build backend
       echo "Building backend..."
-      cd ../server
+      cd server
       npm install --legacy-peer-deps
+      
+      # Verify files
+      echo "Verifying files..."
+      ls -la public/
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
