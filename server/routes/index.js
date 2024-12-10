@@ -1,23 +1,43 @@
+require('dotenv').config();
 const express = require('express');
-const weatherService = require('../services/weatherService'); // Example API service
+const cors = require('cors');
+const path = require('path');
+const { MongoClient } = require('mongodb');
+const routes = require('./routes');
 
-const router = express.Router();
+const app = express();
+const port = process.env.PORT || 3000;
 
-// Example Health Check
-router.get('/health', (req, res) => {
-  res.status(200).send({ status: 'Healthy' });
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// API Routes
+app.use('/api', routes);
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Example Weather API
-router.get('/weather/:airportCode', async (req, res) => {
-  try {
-    const { airportCode } = req.params;
-    const data = await weatherService.getWeather(airportCode);
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ error: 'Failed to fetch weather data' });
-  }
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-module.exports = router;
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
