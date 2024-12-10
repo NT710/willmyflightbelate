@@ -11,8 +11,6 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.x
-      - key: NPM_VERSION
-        value: 9.x
 
   # Backend Service
   - type: web
@@ -20,10 +18,9 @@ services:
     env: node
     buildCommand: |
       cd server
+      rm -rf node_modules package-lock.json
       npm install --legacy-peer-deps
     startCommand: cd server && node index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
-      - key: NPM_VERSION
-        value: 9.x
