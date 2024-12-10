@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "echo 'No build step required for Node.js'"
+    "build": "echo 'No build step required for Node.js'",
+    "postinstall": "echo 'Ensure MongoDB is running and accessible'"
   },
   "dependencies": {
     "cors": "^2.8.5",
