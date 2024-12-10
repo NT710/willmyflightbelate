@@ -1,3 +1,4 @@
+// PredictionDetails.tsx
 import { FC } from 'react';
 
 type PredictionDetailsProps = {
