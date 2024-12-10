@@ -1,15 +1,8 @@
-services:
-  - type: web
-    name: willmyflightbelate
-    env: node
-    buildCommand: |
-      cd client
-      npm install --legacy-peer-deps
-      npm run build
-      cd ../server
-      npm install --legacy-peer-deps
-      mkdir -p public
-      cp -rv ../client/build/* public/
-    startCommand: |
-      cd server
-      NODE_ENV=production node index.js
+buildCommand: |
+  cd client
+  npm install --legacy-peer-deps
+  npm run build
+  cd ../server
+  npm install --legacy-peer-deps
+  mkdir -p public
+  cp -rv ../client/build/* public/
