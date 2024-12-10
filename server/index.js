@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { MongoClient } = require('mongodb');
+const fs = require('fs');
 const routes = require('./routes');
 
 const app = express();
@@ -14,42 +15,47 @@ app.use(express.json());
 // API Routes
 app.use('/api', routes);
 
-// Log the current directory and public path
+// Debug current directory and files
+const publicPath = path.join(__dirname, 'public');
+console.log('Server starting...');
 console.log('Current directory:', __dirname);
-console.log('Public directory:', path.join(__dirname, 'public'));
-console.log('Files in public directory:', require('fs').readdirSync(path.join(__dirname, 'public')));
+console.log('Public path:', publicPath);
+if (fs.existsSync(publicPath)) {
+    console.log('Files in public:', fs.readdirSync(publicPath));
+} else {
+    console.log('Public directory does not exist!');
+}
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicPath));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// API health check
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy',
     timestamp: new Date().toISOString()
   });
 });
 
-// Handle React routing
+// Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'public', 'index.html');
-  console.log('Attempting to serve:', indexPath);
-  if (require('fs').existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    console.error('index.html not found at:', indexPath);
-    res.status(404).send('Frontend not found');
-  }
-});
-
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({ error: 'Something broke!' });
+    const indexPath = path.join(publicPath, 'index.html');
+    console.log('Requested path:', req.path);
+    console.log('Trying to serve:', indexPath);
+    
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).json({ 
+            error: 'Frontend not found',
+            path: indexPath,
+            exists: false,
+            currentDir: __dirname
+        });
+    }
 });
 
 // Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-</document_content>
