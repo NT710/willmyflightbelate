@@ -1,7 +1,4 @@
-// card.tsx
-import React from 'react';
-import type { FC } from 'react';
-import './card.css'; // Assuming CSS for styling is present
+import { FC } from 'react';
 
 type CardProps = {
   title: string;
@@ -11,12 +8,8 @@ type CardProps = {
 const Card: FC<CardProps> = ({ title, content }) => {
   return (
     <div className="card">
-      <div className="card-header">
-        <h3>{title}</h3>
-      </div>
-      <div className="card-body">
-        <p>{content}</p>
-      </div>
+      <h3>{title}</h3>
+      <p>{content}</p>
     </div>
   );
 };
