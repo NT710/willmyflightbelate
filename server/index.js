@@ -1,21 +1,42 @@
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
-const routes = require('./routes'); // Import API routes
+const { MongoClient } = require('mongodb');
+const routes = require('./routes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// Serve static files from React build directory
-app.use(express.static(path.join(__dirname, '../client/build')));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 // API Routes
 app.use('/api', routes);
 
-// Catch-all to serve React app for other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Handle React routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
