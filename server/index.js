@@ -1,15 +1,19 @@
 const express = require('express');
-const cacheService = require('./services/cacheService'); // Ensure this path is correct
-const routes = require('./routes');
+const path = require('path');
+const routes = require('./routes'); // Your backend API routes
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+// API Routes
 app.use('/api', routes);
 
-app.get('/', (req, res) => {
-  res.send('Server is up and running!');
+// Catch-all route to serve the React app for all other requests
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 app.listen(PORT, () => {
