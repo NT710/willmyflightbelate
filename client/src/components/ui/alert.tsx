@@ -1,3 +1,4 @@
+// alert.tsx
 import { FC } from 'react';
 
 type AlertProps = {
