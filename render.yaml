@@ -5,16 +5,20 @@ services:
     env: node
     plan: free
     buildCommand: |
-      # Install and build frontend
+      # Build frontend
       echo "Building frontend..."
       cd client
       npm install --legacy-peer-deps
       npm run build
-      cd ..
       
-      # Install backend dependencies
+      # Move the build to public directory
+      echo "Setting up static files..."
+      mkdir -p ../server/public
+      cp -r dist/* ../server/public/
+      
+      # Build backend
       echo "Building backend..."
-      cd server
+      cd ../server
       npm install --legacy-peer-deps
     startCommand: cd server && node index.js
     envVars:
